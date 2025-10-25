@@ -125,6 +125,9 @@ def estimate_image_tokens(file_path: str, model_name: str) -> int:
 
     Returns:
         Estimated token count
+
+    Raises:
+        ValueError: If file cannot be accessed (not found, permission denied, etc.)
     """
     try:
         width, height = imagesize.get(file_path)
@@ -142,7 +145,16 @@ def estimate_image_tokens(file_path: str, model_name: str) -> int:
         tiles_y = math.ceil(height / 768)
         return 258 * tiles_x * tiles_y
 
+    except (FileNotFoundError, PermissionError, OSError) as e:
+        # File access errors should be raised with specific messages
+        if isinstance(e, FileNotFoundError):
+            raise ValueError(f"Image file not found for token estimation: {file_path}") from e
+        elif isinstance(e, PermissionError):
+            raise ValueError(f"Permission denied accessing image file: {file_path}") from e
+        else:
+            raise ValueError(f"Cannot access image file {file_path}: {e}") from e
     except Exception as e:
+        # Other errors (parsing issues, corrupted image) - use fallback
         logger.warning("Image token estimation failed for %s: %s, using fallback", file_path, e)
         return 258
 
@@ -159,6 +171,9 @@ def estimate_pdf_tokens(file_path: str) -> int:
 
     Returns:
         Estimated token count
+
+    Raises:
+        ValueError: If file cannot be accessed (not found, permission denied, etc.)
     """
     try:
         with open(file_path, "rb") as f:
@@ -166,7 +181,16 @@ def estimate_pdf_tokens(file_path: str) -> int:
             num_pages = len(reader.pages)
         return 258 * num_pages
 
+    except (FileNotFoundError, PermissionError, OSError) as e:
+        # File access errors should be raised with specific messages
+        if isinstance(e, FileNotFoundError):
+            raise ValueError(f"PDF file not found for token estimation: {file_path}") from e
+        elif isinstance(e, PermissionError):
+            raise ValueError(f"Permission denied accessing PDF file: {file_path}") from e
+        else:
+            raise ValueError(f"Cannot access PDF file {file_path}: {e}") from e
     except Exception as e:
+        # Other errors (parsing issues, corrupted PDF) - use fallback
         logger.warning("PDF token estimation failed for %s: %s, using fallback", file_path, e)
         return 258 * 10  # Conservative fallback
 
@@ -184,6 +208,9 @@ def estimate_video_tokens(file_path: str, media_resolution: str = "MEDIUM") -> i
 
     Returns:
         Estimated token count
+
+    Raises:
+        ValueError: If file cannot be accessed (not found, permission denied, etc.)
     """
     try:
         tag = TinyTag.get(file_path)
@@ -201,7 +228,16 @@ def estimate_video_tokens(file_path: str, media_resolution: str = "MEDIUM") -> i
 
         return int(duration_seconds * tokens_per_second)
 
+    except (FileNotFoundError, PermissionError, OSError) as e:
+        # File access errors should be raised with specific messages
+        if isinstance(e, FileNotFoundError):
+            raise ValueError(f"Video file not found for token estimation: {file_path}") from e
+        elif isinstance(e, PermissionError):
+            raise ValueError(f"Permission denied accessing video file: {file_path}") from e
+        else:
+            raise ValueError(f"Cannot access video file {file_path}: {e}") from e
     except Exception as e:
+        # Other errors (corrupted video, unsupported codec) - use fallback
         logger.warning("Video token estimation failed for %s: %s, using fallback", file_path, e)
         return 3000  # Conservative fallback
 
@@ -216,6 +252,9 @@ def estimate_audio_tokens(file_path: str) -> int:
 
     Returns:
         Estimated token count
+
+    Raises:
+        ValueError: If file cannot be accessed (not found, permission denied, etc.)
     """
     try:
         tag = TinyTag.get(file_path)
@@ -227,7 +266,16 @@ def estimate_audio_tokens(file_path: str) -> int:
 
         return int(duration_seconds * 32)
 
+    except (FileNotFoundError, PermissionError, OSError) as e:
+        # File access errors should be raised with specific messages
+        if isinstance(e, FileNotFoundError):
+            raise ValueError(f"Audio file not found for token estimation: {file_path}") from e
+        elif isinstance(e, PermissionError):
+            raise ValueError(f"Permission denied accessing audio file: {file_path}") from e
+        else:
+            raise ValueError(f"Cannot access audio file {file_path}: {e}") from e
     except Exception as e:
+        # Other errors (corrupted audio, unsupported format) - use fallback
         logger.warning("Audio token estimation failed for %s: %s, using fallback", file_path, e)
         return 320  # Conservative fallback
 
