@@ -97,7 +97,7 @@ class TestModelContextTokenEstimation(unittest.TestCase):
 
             self.assertEqual(tokens, 0)
 
-    def testdetect_mime_type_common_extensions(self):
+    def test_detect_mime_type_common_extensions(self):
         """Test detect_mime_type correctly maps common file extensions."""
         with patch("utils.model_context.ModelProviderRegistry.get_provider_for_model", return_value=self.mock_provider):
             model_context = ModelContext("flash")
@@ -123,7 +123,7 @@ class TestModelContextTokenEstimation(unittest.TestCase):
             mime = model_context.detect_mime_type("/path/to/file.wav")
             self.assertIn(mime, ["audio/wav", "audio/x-wav"])  # Accept either
 
-    def testdetect_mime_type_case_insensitive(self):
+    def test_detect_mime_type_case_insensitive(self):
         """Test detect_mime_type handles uppercase extensions."""
         with patch("utils.model_context.ModelProviderRegistry.get_provider_for_model", return_value=self.mock_provider):
             model_context = ModelContext("flash")
@@ -133,7 +133,7 @@ class TestModelContextTokenEstimation(unittest.TestCase):
             self.assertEqual(model_context.detect_mime_type("/path/to/FILE.PNG"), "image/png")
             self.assertEqual(model_context.detect_mime_type("/path/to/FILE.PDF"), "application/pdf")
 
-    def testdetect_mime_type_no_extension(self):
+    def test_detect_mime_type_no_extension(self):
         """Test detect_mime_type defaults to text/plain for files without extension."""
         with patch("utils.model_context.ModelProviderRegistry.get_provider_for_model", return_value=self.mock_provider):
             model_context = ModelContext("flash")
@@ -142,7 +142,7 @@ class TestModelContextTokenEstimation(unittest.TestCase):
 
             self.assertEqual(mime_type, "text/plain")
 
-    def testdetect_mime_type_unknown_extension(self):
+    def test_detect_mime_type_unknown_extension(self):
         """Test detect_mime_type handles unknown extensions (may use mimetypes library or fallback)."""
         with patch("utils.model_context.ModelProviderRegistry.get_provider_for_model", return_value=self.mock_provider):
             model_context = ModelContext("flash")
@@ -152,7 +152,7 @@ class TestModelContextTokenEstimation(unittest.TestCase):
 
             self.assertEqual(mime_type, "text/plain")
 
-    def testdetect_mime_type_uses_mimetypes_library(self):
+    def test_detect_mime_type_uses_mimetypes_library(self):
         """Test detect_mime_type uses mimetypes.guess_type first."""
         with patch("utils.model_context.ModelProviderRegistry.get_provider_for_model", return_value=self.mock_provider):
             with patch("utils.model_context.mimetypes.guess_type", return_value=("image/svg+xml", None)):

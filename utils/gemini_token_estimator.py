@@ -322,10 +322,15 @@ def estimate_tokens_for_files(model_name: str, files: list[dict], media_resoluti
                 with open(file_path, encoding="utf-8") as f:
                     content = f.read()
                 total_tokens += calculate_text_tokens(model_name, content)
+            except (FileNotFoundError, PermissionError, OSError) as e:
+                raise ValueError(f"Cannot access text file {file_path}: {e}") from e
             except Exception as e:
                 logger.warning("Failed to read text file %s: %s, using size-based fallback", file_path, e)
                 # Fallback: estimate based on file size
-                total_tokens += os.path.getsize(file_path) // 4
+                try:
+                    total_tokens += os.path.getsize(file_path) // 4
+                except (FileNotFoundError, PermissionError, OSError) as e:
+                    raise ValueError(f"Cannot access text file {file_path}: {e}") from e
 
         # Videos: resolution-dependent estimation
         elif mime_type.startswith("video/"):
