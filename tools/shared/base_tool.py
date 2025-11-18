@@ -1649,6 +1649,14 @@ When recommending searches, be specific about what information you need and why 
         # to account for base64 encoding overhead (~33% increase) and text content.
         # This keeps validation simple and performant while providing adequate safety margin.
         max_total_size_mb = capabilities.max_total_image_size_mb
+
+        # Fallback for backward compatibility: if max_total_image_size_mb is not set
+        # but max_image_size_mb is configured, use it as the total limit (historical behavior)
+        # This ensures existing provider configs (gemini_models.json, openai_models.json, etc.)
+        # continue to enforce total size limits until they are migrated to the new field
+        if max_total_size_mb <= 0 and max_size_mb > 0:
+            max_total_size_mb = max_size_mb
+
         if max_total_size_mb > 0:
             effective_total_limit_mb = self._get_effective_limit(max_total_size_mb, capabilities)
             # Check if total size exceeds the request limit

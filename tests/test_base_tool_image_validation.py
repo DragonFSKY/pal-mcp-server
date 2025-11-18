@@ -92,3 +92,29 @@ def test_validate_image_limits_respects_custom_total_cap(tmp_path):
     assert result is not None
     assert result["status"] == "error"
     assert "Total image size limit exceeded" in result["content"]
+
+
+def test_validate_image_limits_falls_back_to_per_image_limit(tmp_path):
+    """Test backward compatibility: when max_total_image_size_mb is not set,
+    fallback to using max_image_size_mb as the total limit.
+
+    This ensures existing provider configs (gemini_models.json, openai_models.json)
+    continue to work correctly until migrated to the new field.
+    """
+    tool = ChatTool()
+    # Old config style: only max_image_size_mb is set (meant as total limit)
+    caps = FakeCapabilities(max_image_size_mb=2.0, max_total_image_size_mb=0.0)
+    ctx = FakeModelContext(caps)
+
+    img1 = tmp_path / "img1.bin"
+    img2 = tmp_path / "img2.bin"
+    # Each 1.5MB, total 3MB exceeds the 2MB limit
+    for path in (img1, img2):
+        path.write_bytes(b"\x00" * int(1.5 * 1024 * 1024))
+
+    result = tool._validate_image_limits([str(img1), str(img2)], model_context=ctx)
+    assert result is not None
+    assert result["status"] == "error"
+    assert "Total image size limit exceeded" in result["content"]
+    assert "3.0MB" in result["content"]  # Total size
+    assert "2.0MB" in result["content"]  # Limit
