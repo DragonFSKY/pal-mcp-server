@@ -44,7 +44,7 @@ class CustomEndpointModelRegistry(CapabilityModelRegistry):
         This ensures listmodels and other tools can see user-defined models
         even if they're not declared in custom_models.json.
         """
-        custom_model_name = get_env("CUSTOM_MODEL_NAME", "") or ""
+        custom_model_name = (get_env("CUSTOM_MODEL_NAME", "") or "").strip()
         if not custom_model_name:
             return
 
@@ -61,7 +61,7 @@ class CustomEndpointModelRegistry(CapabilityModelRegistry):
             description="Custom model via CUSTOM_MODEL_NAME environment variable",
             context_window=128000,  # Conservative default
             max_output_tokens=16000,  # Conservative default
-            intelligence_score=10,  # Mid-range default
+            intelligence_score=6,  # Conservative default, matches llama3.2 in custom_models.json
             supports_extended_thinking=False,
             supports_json_mode=False,
             supports_function_calling=False,

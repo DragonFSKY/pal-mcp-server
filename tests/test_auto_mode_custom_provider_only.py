@@ -256,14 +256,17 @@ class TestAutoModeCustomProviderOnly:
             assert resolved is not None, f"Model '{unique_model}' should be injected into registry"
             assert resolved.model_name == unique_model
 
-            # Check auto mode returns the injected model
+            # Check auto mode returns the user-specified model (not alphabetically first)
             from tools.models import ToolModelCategory
 
             fallback_model = ModelProviderRegistry.get_preferred_fallback_model(ToolModelCategory.FAST_RESPONSE)
             print(f"Fallback model with injected CUSTOM_MODEL_NAME: {fallback_model}")
 
-            # Should return either the injected model or an existing model, not gemini-2.5-flash
-            assert fallback_model != "gemini-2.5-flash", "Should not fall back to Gemini when custom model is injected"
+            # Should return the user-specified model, not gemini-2.5-flash or alphabetically first
+            assert fallback_model == unique_model, (
+                f"Should return user-specified model '{unique_model}', got '{fallback_model}'. "
+                "CustomProvider.get_preferred_model should prioritize CUSTOM_MODEL_NAME."
+            )
 
     def test_custom_model_name_visible_in_all_registry_instances(self):
         """Test that CUSTOM_MODEL_NAME is visible in independently created registry instances.
@@ -306,3 +309,107 @@ class TestAutoModeCustomProviderOnly:
             # Verify it's in the alias map
             aliases = new_registry.list_aliases()
             assert unique_model.lower() in aliases, f"Model '{unique_model}' should be in list_aliases()"
+
+    def test_get_preferred_model_prioritizes_custom_model_name(self):
+        """Test that CustomProvider.get_preferred_model prioritizes CUSTOM_MODEL_NAME.
+
+        This ensures that when a user explicitly sets CUSTOM_MODEL_NAME, auto mode
+        will select that model instead of relying on alphabetical ordering.
+        """
+        # Use a model name that would NOT be first alphabetically
+        # (llama3.2 from custom_models.json would be first)
+        unique_model = "zebra-custom-model"
+
+        test_env = {
+            "CUSTOM_API_URL": "http://localhost:11434/v1",
+            "CUSTOM_API_KEY": "",
+            "CUSTOM_MODEL_NAME": unique_model,
+        }
+
+        with patch.dict(os.environ, test_env, clear=False):
+            # Clear other provider keys
+            for key in ["GEMINI_API_KEY", "OPENAI_API_KEY", "XAI_API_KEY", "OPENROUTER_API_KEY", "DIAL_API_KEY"]:
+                if key in os.environ:
+                    del os.environ[key]
+
+            # Reset registry
+            from providers.custom import CustomProvider
+
+            CustomProvider._registry = None
+
+            # Register custom provider
+            ModelProviderRegistry.register_provider(ProviderType.CUSTOM, CustomProvider)
+
+            # Get provider instance
+            custom_provider = ModelProviderRegistry.get_provider(ProviderType.CUSTOM)
+            assert custom_provider is not None
+
+            # Get allowed models (should include both llama3.2 and zebra-custom-model)
+            allowed_models = ModelProviderRegistry._get_allowed_models_for_provider(
+                custom_provider, ProviderType.CUSTOM
+            )
+
+            # Verify both models are in allowed list
+            assert "llama3.2" in allowed_models, "llama3.2 should be in allowed models"
+            assert unique_model in allowed_models, f"{unique_model} should be in allowed models"
+
+            # Verify alphabetical order would select llama3.2
+            assert (
+                sorted(allowed_models)[0] == "llama3.2"
+            ), "Alphabetically first model should be llama3.2, not the custom model"
+
+            # Test get_preferred_model returns the user-specified model
+            from tools.models import ToolModelCategory
+
+            preferred = custom_provider.get_preferred_model(ToolModelCategory.FAST_RESPONSE, allowed_models)
+            assert preferred == unique_model, (
+                f"get_preferred_model should return '{unique_model}', got '{preferred}'. "
+                "User-specified CUSTOM_MODEL_NAME should take priority over alphabetical order."
+            )
+
+    def test_get_preferred_model_returns_none_without_custom_model_name(self):
+        """Test that get_preferred_model returns None when CUSTOM_MODEL_NAME is not set.
+
+        This ensures backward compatibility - without explicit user preference,
+        the selection falls back to alphabetical ordering.
+        """
+        test_env = {
+            "CUSTOM_API_URL": "http://localhost:11434/v1",
+            "CUSTOM_API_KEY": "",
+            # CUSTOM_MODEL_NAME intentionally not set
+        }
+
+        with patch.dict(os.environ, test_env, clear=False):
+            # Clear CUSTOM_MODEL_NAME if set
+            if "CUSTOM_MODEL_NAME" in os.environ:
+                del os.environ["CUSTOM_MODEL_NAME"]
+
+            # Clear other provider keys
+            for key in ["GEMINI_API_KEY", "OPENAI_API_KEY", "XAI_API_KEY", "OPENROUTER_API_KEY", "DIAL_API_KEY"]:
+                if key in os.environ:
+                    del os.environ[key]
+
+            # Reset registry
+            from providers.custom import CustomProvider
+
+            CustomProvider._registry = None
+
+            # Register custom provider
+            ModelProviderRegistry.register_provider(ProviderType.CUSTOM, CustomProvider)
+
+            # Get provider instance
+            custom_provider = ModelProviderRegistry.get_provider(ProviderType.CUSTOM)
+            assert custom_provider is not None
+
+            # Get allowed models
+            allowed_models = ModelProviderRegistry._get_allowed_models_for_provider(
+                custom_provider, ProviderType.CUSTOM
+            )
+
+            # Test get_preferred_model returns None (fallback to alphabetical)
+            from tools.models import ToolModelCategory
+
+            preferred = custom_provider.get_preferred_model(ToolModelCategory.FAST_RESPONSE, allowed_models)
+            assert (
+                preferred is None
+            ), f"get_preferred_model should return None without CUSTOM_MODEL_NAME, got '{preferred}'"
