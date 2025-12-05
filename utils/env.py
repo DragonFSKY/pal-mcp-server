@@ -28,6 +28,23 @@ def _read_dotenv_values() -> dict[str, str | None]:
 
 
 def _compute_force_override(values: Mapping[str, str | None]) -> bool:
+    """
+    Determine if .env should override system environment variables.
+
+    Checks both:
+    1. Environment variable ZEN_MCP_FORCE_ENV_OVERRIDE (for Skills mode)
+    2. .env file setting ZEN_MCP_FORCE_ENV_OVERRIDE
+
+    Skills mode sets the environment variable before calling reload_env(),
+    so we need to check os.environ as well as the .env values.
+    """
+    import os
+
+    # Check environment variable first (set by Skills mode)
+    env_override = os.environ.get("ZEN_MCP_FORCE_ENV_OVERRIDE", "").strip().lower()
+    if env_override == "true":
+        return True
+    # Fall back to .env file setting
     raw = (values.get("ZEN_MCP_FORCE_ENV_OVERRIDE") or "false").strip().lower()
     return raw == "true"
 
