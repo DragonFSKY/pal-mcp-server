@@ -122,14 +122,11 @@ def setup_environment(root: Path) -> None:
     # This allows continuation_id to work across separate skill invocations
     #
     # NOTE: Storage backend difference between modes:
-    # - MCP Server mode: Uses in-memory storage by default (fast, single-process)
+    # - MCP Server mode: Uses in-memory storage (fast, single-process)
     # - Skills mode: Uses SQLite storage (cross-process persistence required)
     #
-    # To share sessions between modes, configure MCP server to also use SQLite:
-    #   export ZEN_MCP_STORAGE=sqlite
-    #   export ZEN_MCP_STORAGE_PATH=/path/to/shared/sessions.db
-    #
-    # Without this configuration, continuation_id from one mode won't work in the other.
+    # Sessions are isolated by default - continuation_id from one mode won't work in the other.
+    # Database location: ~/.zen_mcp/sessions.db (or set ZEN_SKILL_STORAGE_PATH to override)
     os.environ["ZEN_SKILL_STORAGE"] = "sqlite"
 
     # Configure logging level for Skills mode

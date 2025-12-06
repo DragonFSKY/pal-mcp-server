@@ -14,16 +14,17 @@ This conversation memory system supports two storage backends:
    - Ideal for persistent MCP server processes (e.g., Claude Desktop)
    - Fast and lightweight, no external dependencies
 
-2. SQLITE STORAGE (Multi-process Support):
+2. SQLITE STORAGE (Skills mode / Multi-process Support):
    - Uses SQLite database for cross-process persistence
+   - Automatically enabled in Skills mode for session persistence
    - Enables multi-process scenarios (e.g., simulator tests, concurrent workers)
-   - Activated via environment variable: ZEN_SKILL_STORAGE=sqlite
-   - Database location: ~/.zen_skill_storage.db
+   - Environment variable: ZEN_SKILL_STORAGE=sqlite
+   - Database location: ~/.zen_mcp/sessions.db (or set ZEN_SKILL_STORAGE_PATH to override)
 
 Configuration:
-- Default behavior: In-memory storage (single process only)
-- Multi-process mode: Set ZEN_SKILL_STORAGE=sqlite in environment
-- The system automatically selects the appropriate backend based on configuration
+- MCP Server mode: In-memory storage by default (single process)
+- Skills mode: SQLite storage by default (cross-process persistence)
+- Sessions are isolated between modes by default
 
 ARCHITECTURE OVERVIEW:
 The MCP protocol is inherently stateless - each tool request is independent
