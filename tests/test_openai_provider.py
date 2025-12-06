@@ -55,6 +55,9 @@ class TestOpenAIProvider:
         assert provider.validate_model_name("o4-mini") is True
         assert provider.validate_model_name("gpt-5") is True
         assert provider.validate_model_name("gpt-5-mini") is True
+        assert provider.validate_model_name("gpt-5.1") is True
+        assert provider.validate_model_name("gpt-5.1-codex") is True
+        assert provider.validate_model_name("gpt-5.1-codex-mini") is True
 
         # Test valid aliases
         assert provider.validate_model_name("mini") is True
@@ -64,6 +67,9 @@ class TestOpenAIProvider:
         assert provider.validate_model_name("gpt5") is True
         assert provider.validate_model_name("gpt5-mini") is True
         assert provider.validate_model_name("gpt5mini") is True
+        assert provider.validate_model_name("gpt5.1") is True
+        assert provider.validate_model_name("gpt5.1-codex") is True
+        assert provider.validate_model_name("codex-mini") is True
 
         # Test invalid model
         assert provider.validate_model_name("invalid-model") is False
@@ -82,6 +88,9 @@ class TestOpenAIProvider:
         assert provider._resolve_model_name("gpt5") == "gpt-5"
         assert provider._resolve_model_name("gpt5-mini") == "gpt-5-mini"
         assert provider._resolve_model_name("gpt5mini") == "gpt-5-mini"
+        assert provider._resolve_model_name("gpt5.1") == "gpt-5.1"
+        assert provider._resolve_model_name("gpt5.1-codex") == "gpt-5.1-codex"
+        assert provider._resolve_model_name("codex-mini") == "gpt-5.1-codex-mini"
 
         # Test full name passthrough
         assert provider._resolve_model_name("o3") == "o3"
@@ -91,6 +100,9 @@ class TestOpenAIProvider:
         assert provider._resolve_model_name("o4-mini") == "o4-mini"
         assert provider._resolve_model_name("gpt-5") == "gpt-5"
         assert provider._resolve_model_name("gpt-5-mini") == "gpt-5-mini"
+        assert provider._resolve_model_name("gpt-5.1") == "gpt-5.1"
+        assert provider._resolve_model_name("gpt-5.1-codex") == "gpt-5.1-codex"
+        assert provider._resolve_model_name("gpt-5.1-codex-mini") == "gpt-5.1-codex-mini"
 
     def test_get_capabilities_o3(self):
         """Test getting model capabilities for O3."""
@@ -151,7 +163,37 @@ class TestOpenAIProvider:
         assert capabilities.supports_function_calling is True
         assert capabilities.supports_temperature is True
 
-    @patch("providers.openai_responses.OpenAI")
+    def test_get_capabilities_gpt51(self):
+        """Test GPT-5.1 capabilities reflect new metadata."""
+        provider = OpenAIModelProvider("test-key")
+
+        capabilities = provider.get_capabilities("gpt-5.1")
+        assert capabilities.model_name == "gpt-5.1"
+        assert capabilities.supports_streaming is True
+        assert capabilities.supports_function_calling is True
+        assert capabilities.supports_json_mode is True
+        assert capabilities.allow_code_generation is True
+
+    def test_get_capabilities_gpt51_codex(self):
+        """Test GPT-5.1 Codex is responses-only and non-streaming."""
+        provider = OpenAIModelProvider("test-key")
+
+        capabilities = provider.get_capabilities("gpt-5.1-codex")
+        assert capabilities.model_name == "gpt-5.1-codex"
+        assert capabilities.supports_streaming is False
+        assert capabilities.use_openai_response_api is True
+        assert capabilities.allow_code_generation is True
+
+    def test_get_capabilities_gpt51_codex_mini(self):
+        """Test GPT-5.1 Codex mini exposes streaming and code generation."""
+        provider = OpenAIModelProvider("test-key")
+
+        capabilities = provider.get_capabilities("gpt-5.1-codex-mini")
+        assert capabilities.model_name == "gpt-5.1-codex-mini"
+        assert capabilities.supports_streaming is True
+        assert capabilities.allow_code_generation is True
+
+    @patch("providers.openai_compatible.OpenAI")
     def test_generate_content_resolves_alias_before_api_call(self, mock_openai_class):
         """Test that generate_content resolves aliases before making API calls.
 
