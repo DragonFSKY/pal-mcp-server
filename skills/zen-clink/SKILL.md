@@ -33,6 +33,7 @@ Connect to external AI command-line tools for cross-model collaboration. Enables
 
 JSON with external AI response and integration notes.
 
-## Note
+## Model Selection
 
-CLink uses external CLI tools (Gemini CLI, aider, etc.) and doesn't use the internal model selection.
+CLink uses external CLI tools (Gemini CLI, aider, etc.) rather than internal Zen models.
+Use `zen-listmodels` to see available internal models for other Zen skills.

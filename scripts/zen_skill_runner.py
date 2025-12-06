@@ -343,8 +343,7 @@ async def execute_tool(tool, payload: dict, skill_name: str) -> tuple[str, bool]
     except ModelResolutionError as e:
         # Enhance error message with zen-listmodels hint
         error_msg = str(e)
-        if e.available_models:
-            error_msg += "\n\nTip: Use `zen-listmodels` skill to see all available models."
+        error_msg += "\n\nTip: Use `zen-listmodels` skill to see all available models."
         return (
             json.dumps(
                 {
