@@ -190,6 +190,7 @@ def clear_model_restriction_env(monkeypatch):
     # Reset the restriction service singleton to ensure clean state
     try:
         from utils import model_restrictions
+
         model_restrictions._restriction_service = None  # type: ignore[attr-defined]
     except Exception:
         pass
