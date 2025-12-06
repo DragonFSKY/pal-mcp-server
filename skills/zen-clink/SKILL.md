@@ -32,3 +32,7 @@ Connect to external AI command-line tools for cross-model collaboration. Enables
 ## Output
 
 JSON with external AI response and integration notes.
+
+## Note
+
+CLink uses external CLI tools (Gemini CLI, aider, etc.) and doesn't use the internal model selection.

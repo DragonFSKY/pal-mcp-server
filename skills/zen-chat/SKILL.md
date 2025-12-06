@@ -34,3 +34,9 @@ Collaborative thinking and development discussions with Zen's multi-model AI sup
 ## Output
 
 JSON response with AI analysis and optional `continuation_id` for follow-up conversations.
+
+## Model Selection
+
+- Models are detected at runtime based on your configuration
+- Use `zen-listmodels` to see available models before specifying one
+- Default: auto-select best available model for the task

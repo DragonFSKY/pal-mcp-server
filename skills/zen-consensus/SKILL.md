@@ -47,3 +47,9 @@ Multi-step consensus process:
 ## Output
 
 JSON with multi-model analysis, areas of agreement, disagreements, and synthesized recommendation.
+
+## Model Selection
+
+- Models are detected at runtime based on your configuration
+- Use `zen-listmodels` to see available models before specifying one
+- Provide `models` array to specify which models to consult

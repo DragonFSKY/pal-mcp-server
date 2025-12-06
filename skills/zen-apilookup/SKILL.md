@@ -28,3 +28,9 @@ None - this is a simple single-prompt tool.
 ## Output
 
 JSON with documentation excerpts, usage examples, and relevant links.
+
+## Model Selection
+
+- Models are detected at runtime based on your configuration
+- Use `zen-listmodels` to see available models before specifying one
+- Default: auto-select best available model for the task

@@ -27,7 +27,7 @@ def _read_dotenv_values() -> dict[str, str | None]:
     return {}
 
 
-def _compute_force_override(values: Mapping[str, str | None]) -> bool:
+def _compute_force_override(values: Mapping[str, str | None], *, ignore_os_environ: bool = False) -> bool:
     """
     Determine if .env should override system environment variables.
 
@@ -37,14 +37,21 @@ def _compute_force_override(values: Mapping[str, str | None]) -> bool:
 
     Skills mode sets the environment variable before calling reload_env(),
     so we need to check os.environ as well as the .env values.
+
+    Args:
+        values: Mapping of environment values (from .env or test override)
+        ignore_os_environ: If True, ignore os.environ and only use values mapping.
+            This is used by tests to ensure they can control the override setting.
     """
     import os
 
     # Check environment variable first (set by Skills mode)
-    env_override = os.environ.get("ZEN_MCP_FORCE_ENV_OVERRIDE", "").strip().lower()
-    if env_override == "true":
-        return True
-    # Fall back to .env file setting
+    # Skip this check when explicitly told to ignore os.environ (test mode)
+    if not ignore_os_environ:
+        env_override = os.environ.get("ZEN_MCP_FORCE_ENV_OVERRIDE", "").strip().lower()
+        if env_override == "true":
+            return True
+    # Fall back to .env file setting (or explicit test values)
     raw = (values.get("ZEN_MCP_FORCE_ENV_OVERRIDE") or "false").strip().lower()
     return raw == "true"
 
@@ -54,14 +61,17 @@ def reload_env(dotenv_mapping: Mapping[str, str | None] | None = None) -> None:
 
     Args:
         dotenv_mapping: Optional mapping used instead of reading the .env file.
-            Intended for tests; when provided, load_dotenv is not invoked.
+            Intended for tests; when provided, load_dotenv is not invoked and
+            os.environ is ignored for override computation.
     """
 
     global _DOTENV_VALUES, _FORCE_ENV_OVERRIDE
 
     if dotenv_mapping is not None:
         _DOTENV_VALUES = dict(dotenv_mapping)
-        _FORCE_ENV_OVERRIDE = _compute_force_override(_DOTENV_VALUES)
+        # When explicit mapping is provided (test mode), ignore os.environ
+        # to ensure tests can control the override setting
+        _FORCE_ENV_OVERRIDE = _compute_force_override(_DOTENV_VALUES, ignore_os_environ=True)
         return
 
     _DOTENV_VALUES = _read_dotenv_values()

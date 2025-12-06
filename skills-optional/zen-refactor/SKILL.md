@@ -54,3 +54,9 @@ Multi-step refactoring analysis:
 ## Output
 
 JSON with identified code smells, refactoring suggestions, and priority recommendations.
+
+## Model Selection
+
+- Models are detected at runtime based on your configuration
+- Use `zen-listmodels` to see available models before specifying one
+- Default: auto-select best available model for the task

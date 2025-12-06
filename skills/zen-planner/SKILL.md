@@ -48,3 +48,9 @@ Multi-step planning workflow:
 ## Output
 
 JSON with implementation plan, dependencies, and recommended execution order.
+
+## Model Selection
+
+- Models are detected at runtime based on your configuration
+- Use `zen-listmodels` to see available models before specifying one
+- Default: auto-select best available model for the task

@@ -50,3 +50,9 @@ Multi-step documentation generation:
 ## Output
 
 JSON with generated documentation content and formatting suggestions.
+
+## Model Selection
+
+- Models are detected at runtime based on your configuration
+- Use `zen-listmodels` to see available models before specifying one
+- Default: auto-select best available model for the task

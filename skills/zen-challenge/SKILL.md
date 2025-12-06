@@ -28,3 +28,9 @@ None - this is a simple single-prompt tool.
 ## Output
 
 JSON with challenges, counter-arguments, identified risks, and alternative perspectives.
+
+## Model Selection
+
+- Models are detected at runtime based on your configuration
+- Use `zen-listmodels` to see available models before specifying one
+- Default: auto-select best available model for the task

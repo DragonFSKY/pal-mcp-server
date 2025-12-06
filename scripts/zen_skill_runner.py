@@ -33,6 +33,7 @@ SKILL_REGISTRY = {
     "zen-challenge": "tools.challenge:ChallengeTool",
     "zen-apilookup": "tools.apilookup:LookupTool",
     "zen-clink": "tools.clink:CLinkTool",
+    "zen-listmodels": "tools.listmodels:ListModelsTool",
     # Optional skills
     "zen-analyze": "tools.analyze:AnalyzeTool",
     "zen-refactor": "tools.refactor:RefactorTool",
@@ -340,13 +341,21 @@ async def execute_tool(tool, payload: dict, skill_name: str) -> tuple[str, bool]
         # Use shared entry point logic (same as MCP server mode)
         payload = await prepare_tool_arguments(tool, payload, skill_name)
     except ModelResolutionError as e:
+        # Enhance error message with zen-listmodels hint
+        error_msg = str(e)
+        if e.available_models:
+            error_msg += "\n\nTip: Use `zen-listmodels` skill to see all available models."
         return (
             json.dumps(
                 {
                     "status": "error",
-                    "content": str(e),
+                    "content": error_msg,
                     "content_type": "text",
-                    "metadata": {"available_models": e.available_models},
+                    "metadata": {
+                        "available_models": e.available_models,
+                        "suggested_model": e.suggested_model,
+                        "hint": "Use zen-listmodels skill to see all available models",
+                    },
                 }
             ),
             False,

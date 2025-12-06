@@ -52,3 +52,9 @@ Multi-step tracing process:
 ## Output
 
 JSON with execution trace, call graph, and data flow analysis.
+
+## Model Selection
+
+- Models are detected at runtime based on your configuration
+- Use `zen-listmodels` to see available models before specifying one
+- Default: auto-select best available model for the task

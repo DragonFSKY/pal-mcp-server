@@ -51,3 +51,9 @@ Multi-step deep thinking process:
 ## Output
 
 JSON response with deep analysis results, findings, and workflow continuation guidance.
+
+## Model Selection
+
+- Models are detected at runtime based on your configuration
+- Use `zen-listmodels` to see available models before specifying one
+- Default: auto-select best available model for the task

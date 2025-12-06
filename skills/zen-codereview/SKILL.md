@@ -54,3 +54,9 @@ Multi-step review process:
 ## Output
 
 JSON with review findings, severity levels, and guidance for next steps.
+
+## Model Selection
+
+- Models are detected at runtime based on your configuration
+- Use `zen-listmodels` to see available models before specifying one
+- Default: auto-select best available model for the task

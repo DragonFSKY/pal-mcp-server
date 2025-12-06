@@ -57,3 +57,9 @@ Multi-step validation process:
 ## Output
 
 JSON with validation results, issues found, and commit readiness assessment.
+
+## Model Selection
+
+- Models are detected at runtime based on your configuration
+- Use `zen-listmodels` to see available models before specifying one
+- Default: auto-select best available model for the task
