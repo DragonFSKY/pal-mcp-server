@@ -44,7 +44,7 @@ allowed-tools: Bash, Read               # 可选，限制工具
 
 ### 目录结构
 ```
-zen-mcp-server/
+pal-mcp-server/
 ├── skills/                          # 技能源目录（项目内）
 │   ├── zen-chat/
 │   │   ├── SKILL.md
