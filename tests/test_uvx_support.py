@@ -4,6 +4,7 @@ Test cases for uvx support and environment handling.
 
 import os
 import sys
+import tempfile
 from pathlib import Path
 from unittest import mock
 
@@ -16,18 +17,35 @@ class TestUvxEnvironmentHandling:
     def test_dotenv_import_success(self):
         """Test that dotenv is imported successfully when available."""
         # Mock successful dotenv import
-        with mock.patch.dict("sys.modules", {"dotenv": mock.MagicMock()}):
-            with mock.patch("dotenv.load_dotenv") as mock_load_dotenv:
-                # Re-import server module to trigger the import logic
-                if "server" in sys.modules:
-                    del sys.modules["server"]
+        mock_load = mock.MagicMock()
+        mock_values = mock.MagicMock(return_value={})
+        fake_dotenv = mock.MagicMock(load_dotenv=mock_load, dotenv_values=mock_values)
 
+        with mock.patch.dict("sys.modules", {"dotenv": fake_dotenv}):
+            if "utils.env" in sys.modules:
+                del sys.modules["utils.env"]
+            if "server" in sys.modules:
+                del sys.modules["server"]
+
+            import importlib
+
+            import utils.env as env_config
+
+            with tempfile.NamedTemporaryFile("w", delete=False) as tmp_env:
+                temp_env_path = Path(tmp_env.name)
+                tmp_env.write("PAL_MCP_FORCE_ENV_OVERRIDE=false\n")
+
+            try:
+                importlib.reload(env_config)
+                env_config._ENV_PATH = temp_env_path
+                env_config.reload_env()
                 import server  # noqa: F401
 
-                # Should have called load_dotenv with the correct path
-                mock_load_dotenv.assert_called_once()
-                call_args = mock_load_dotenv.call_args
-                assert "dotenv_path" in call_args.kwargs
+                assert mock_load.call_count >= 1
+                _, kwargs = mock_load.call_args
+                assert "dotenv_path" in kwargs
+            finally:
+                temp_env_path.unlink(missing_ok=True)
 
     def test_dotenv_import_failure_graceful_handling(self):
         """Test that ImportError for dotenv is handled gracefully (uvx scenario)."""
@@ -64,7 +82,7 @@ class TestUvxEnvironmentHandling:
     def test_environment_variables_still_work_without_dotenv(self):
         """Test that environment variables work even when dotenv is not available."""
         # Set a test environment variable
-        test_key = "TEST_ZEN_MCP_VAR"
+        test_key = "TEST_PAL_MCP_VAR"
         test_value = "test_value_123"
 
         with mock.patch.dict(os.environ, {test_key: test_value}):
@@ -115,14 +133,14 @@ class TestUvxProjectConfiguration:
 
         # Essential fields for uvx
         assert "name" in project
-        assert project["name"] == "zen-mcp-server"
+        assert project["name"] == "pal-mcp-server"
         assert "dependencies" in project
         assert "requires-python" in project
 
         # Script entry point for uvx
         assert "scripts" in project
-        assert "zen-mcp-server" in project["scripts"]
-        assert project["scripts"]["zen-mcp-server"] == "server:run"
+        assert "pal-mcp-server" in project["scripts"]
+        assert project["scripts"]["pal-mcp-server"] == "server:run"
 
     def test_pyproject_dependencies_match_requirements(self):
         """Test that pyproject.toml dependencies align with requirements.txt."""

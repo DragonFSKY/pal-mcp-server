@@ -1,7 +1,7 @@
 """
-Version Tool - Display Zen MCP Server version and system information
+Version Tool - Display PAL MCP Server version and system information
 
-This tool provides version information about the Zen MCP Server including
+This tool provides version information about the PAL MCP Server including
 version number, last update date, author, and basic system information.
 It also checks for updates from the GitHub repository.
 """
@@ -90,7 +90,7 @@ def fetch_github_version() -> Optional[tuple[str, str]]:
         logger.warning("urllib not available, cannot check for updates")
         return None
 
-    github_url = "https://raw.githubusercontent.com/BeehiveInnovations/zen-mcp-server/main/config.py"
+    github_url = "https://raw.githubusercontent.com/BeehiveInnovations/pal-mcp-server/main/config.py"
 
     try:
         # Set a 10-second timeout
@@ -126,7 +126,7 @@ def fetch_github_version() -> Optional[tuple[str, str]]:
 
 class VersionTool(BaseTool):
     """
-    Tool for displaying Zen MCP Server version and system information.
+    Tool for displaying PAL MCP Server version and system information.
 
     This tool provides:
     - Current server version
@@ -146,8 +146,9 @@ class VersionTool(BaseTool):
         """Return the JSON schema for the tool's input"""
         return {
             "type": "object",
-            "properties": {"model": {"type": "string", "description": "Model to use (ignored by version tool)"}},
+            "properties": {},
             "required": [],
+            "additionalProperties": False,
         }
 
     def get_annotations(self) -> Optional[dict[str, Any]]:
@@ -175,7 +176,7 @@ class VersionTool(BaseTool):
 
     async def execute(self, arguments: dict[str, Any]) -> list[TextContent]:
         """
-        Display Zen MCP Server version and system information.
+        Display PAL MCP Server version and system information.
 
         This overrides the base class execute to provide direct output without AI model calls.
 
@@ -185,13 +186,42 @@ class VersionTool(BaseTool):
         Returns:
             Formatted version and system information
         """
-        output_lines = ["# Zen MCP Server Version\n"]
+        output_lines = ["# PAL MCP Server Version\n"]
 
         # Server version information
         output_lines.append("## Server Information")
         output_lines.append(f"**Current Version**: {__version__}")
         output_lines.append(f"**Last Updated**: {__updated__}")
         output_lines.append(f"**Author**: {__author__}")
+
+        model_selection_metadata = {"mode": "unknown", "default_model": None}
+        model_selection_display = "Model selection status unavailable"
+
+        # Model selection configuration
+        try:
+            from config import DEFAULT_MODEL
+            from tools.shared.base_tool import BaseTool
+
+            auto_mode = BaseTool.is_effective_auto_mode(self)
+            if auto_mode:
+                output_lines.append(
+                    "**Model Selection**: Auto model selection mode (call `listmodels` to inspect options)"
+                )
+                model_selection_metadata = {"mode": "auto", "default_model": DEFAULT_MODEL}
+                model_selection_display = "Auto model selection (use `listmodels` for options)"
+            else:
+                output_lines.append(f"**Model Selection**: Default model set to `{DEFAULT_MODEL}`")
+                model_selection_metadata = {"mode": "default", "default_model": DEFAULT_MODEL}
+                model_selection_display = f"Default model: `{DEFAULT_MODEL}`"
+        except Exception as exc:
+            logger.debug(f"Could not determine model selection mode: {exc}")
+
+        output_lines.append("")
+        output_lines.append("## Quick Summary — relay everything below")
+        output_lines.append(f"- Version `{__version__}` (updated {__updated__})")
+        output_lines.append(f"- {model_selection_display}")
+        output_lines.append("- Run `listmodels` for the complete model catalog and capabilities")
+        output_lines.append("")
 
         # Try to get client information
         try:
@@ -210,6 +240,13 @@ class VersionTool(BaseTool):
         # Get the current working directory (MCP server location)
         current_path = Path.cwd()
         output_lines.append(f"**Installation Path**: `{current_path}`")
+        output_lines.append("")
+        output_lines.append("## Agent Reporting Guidance")
+        output_lines.append(
+            "Agents MUST report: version, model-selection status, configured providers, and available-model count."
+        )
+        output_lines.append("Repeat the quick-summary bullets verbatim in your reply.")
+        output_lines.append("Reference `listmodels` when users ask about model availability or capabilities.")
         output_lines.append("")
 
         # Check for updates from GitHub
@@ -270,8 +307,8 @@ class VersionTool(BaseTool):
 
         # Check for configured providers
         try:
-            from providers.base import ProviderType
             from providers.registry import ModelProviderRegistry
+            from providers.shared import ProviderType
 
             provider_status = []
 
@@ -320,6 +357,8 @@ class VersionTool(BaseTool):
                 "last_updated": __updated__,
                 "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
                 "platform": f"{platform.system()} {platform.release()}",
+                "model_selection_mode": model_selection_metadata["mode"],
+                "default_model": model_selection_metadata["default_model"],
             },
         )
 

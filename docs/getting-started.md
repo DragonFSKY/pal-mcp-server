@@ -1,6 +1,6 @@
-# Getting Started with Zen MCP Server
+# Getting Started with PAL MCP Server
 
-This guide walks you through setting up the Zen MCP Server from scratch, including installation, configuration, and first usage.
+This guide walks you through setting up the PAL MCP Server from scratch, including installation, configuration, and first usage.
 
 ## Prerequisites
 
@@ -25,11 +25,11 @@ You need at least one API key. Choose based on your needs:
 **Gemini (Google):**
 - Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
 - Generate an API key
-- **Note**: For Gemini 2.5 Pro, use a paid API key (free tier has limited access)
+- **Note**: For Gemini 3.0 / 2.5 Pro, use a paid API key (free tier has limited access)
 
 **OpenAI:**
 - Visit [OpenAI Platform](https://platform.openai.com/api-keys)
-- Generate an API key for O3, GPT-5 access
+- Generate an API key for GPT-5.1, GPT-5.1-Codex, GPT-5, O3 access
 
 **DeepSeek:**
 - Visit [DeepSeek Platform](https://platform.deepseek.com/)
@@ -81,11 +81,11 @@ Choose your AI coding assistant and add the corresponding configuration:
 ```json
 {
   "mcpServers": {
-    "zen": {
+    "pal": {
       "command": "sh",
       "args": [
         "-c", 
-        "for p in $(which uvx 2>/dev/null) $HOME/.local/bin/uvx /opt/homebrew/bin/uvx /usr/local/bin/uvx uvx; do [ -x \"$p\" ] && exec \"$p\" --from git+https://github.com/BeehiveInnovations/zen-mcp-server.git zen-mcp-server; done; echo 'uvx not found' >&2; exit 1"
+        "for p in $(which uvx 2>/dev/null) $HOME/.local/bin/uvx /opt/homebrew/bin/uvx /usr/local/bin/uvx uvx; do [ -x \"$p\" ] && exec \"$p\" --from git+https://github.com/BeehiveInnovations/pal-mcp-server.git pal-mcp-server; done; echo 'uvx not found' >&2; exit 1"
       ],
       "env": {
         "PATH": "/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin:~/.local/bin",
@@ -102,11 +102,11 @@ Create `.mcp.json` in your project root:
 ```json
 {
   "mcpServers": {
-    "zen": {
+    "pal": {
       "command": "sh", 
       "args": [
         "-c",
-        "for p in $(which uvx 2>/dev/null) $HOME/.local/bin/uvx /opt/homebrew/bin/uvx /usr/local/bin/uvx uvx; do [ -x \"$p\" ] && exec \"$p\" --from git+https://github.com/BeehiveInnovations/zen-mcp-server.git zen-mcp-server; done; echo 'uvx not found' >&2; exit 1"
+        "for p in $(which uvx 2>/dev/null) $HOME/.local/bin/uvx /opt/homebrew/bin/uvx /usr/local/bin/uvx uvx; do [ -x \"$p\" ] && exec \"$p\" --from git+https://github.com/BeehiveInnovations/pal-mcp-server.git pal-mcp-server; done; echo 'uvx not found' >&2; exit 1"
       ],
       "env": {
         "PATH": "/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin:~/.local/bin",
@@ -123,11 +123,11 @@ Edit `~/.gemini/settings.json`:
 ```json
 {
   "mcpServers": {
-    "zen": {
+    "pal": {
       "command": "sh",
       "args": [
         "-c",
-        "for p in $(which uvx 2>/dev/null) $HOME/.local/bin/uvx /opt/homebrew/bin/uvx /usr/local/bin/uvx uvx; do [ -x \"$p\" ] && exec \"$p\" --from git+https://github.com/BeehiveInnovations/zen-mcp-server.git zen-mcp-server; done; echo 'uvx not found' >&2; exit 1"  
+        "for p in $(which uvx 2>/dev/null) $HOME/.local/bin/uvx /opt/homebrew/bin/uvx /usr/local/bin/uvx uvx; do [ -x \"$p\" ] && exec \"$p\" --from git+https://github.com/BeehiveInnovations/pal-mcp-server.git pal-mcp-server; done; echo 'uvx not found' >&2; exit 1"  
       ],
       "env": {
         "PATH": "/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin:~/.local/bin",
@@ -142,14 +142,101 @@ Edit `~/.gemini/settings.json`:
 Edit `~/.codex/config.toml`:
 
 ```toml
-[mcp_servers.zen]
+[mcp_servers.pal]
 command = "bash"
-args = ["-c", "for p in $(which uvx 2>/dev/null) $HOME/.local/bin/uvx /opt/homebrew/bin/uvx /usr/local/bin/uvx uvx; do [ -x \\\"$p\\\" ] && exec \\\"$p\\\" --from git+https://github.com/BeehiveInnovations/zen-mcp-server.git zen-mcp-server; done; echo 'uvx not found' >&2; exit 1"]
+args = ["-c", "for p in $(which uvx 2>/dev/null) $HOME/.local/bin/uvx /opt/homebrew/bin/uvx /usr/local/bin/uvx uvx; do [ -x \\\"$p\\\" ] && exec \\\"$p\\\" --from git+https://github.com/BeehiveInnovations/pal-mcp-server.git pal-mcp-server; done; echo 'uvx not found' >&2; exit 1"]
+tool_timeout_sec = 1200  # 20 minutes; added automatically by the setup script so upstream providers can respond
 
-[mcp_servers.zen.env]
+[mcp_servers.pal.env]
 PATH = "/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin:$HOME/.local/bin:$HOME/.cargo/bin:$HOME/bin"
 GEMINI_API_KEY = "your_api_key_here"
 ```
+
+Enable Codex's built-in web-search tool so PAL's `apilookup` instructions can execute successfully:
+
+```toml
+[tools]
+web_search = true
+```
+
+Add the block above if `[tools]` is missing from the file; otherwise ensure `web_search = true` appears in that section.
+
+
+**For Qwen Code CLI:**
+Create or edit `~/.qwen/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "pal": {
+      "command": "bash",
+      "args": [
+        "-c",
+        "for p in $(which uvx 2>/dev/null) $HOME/.local/bin/uvx /opt/homebrew/bin/uvx /usr/local/bin/uvx uvx; do [ -x \"$p\" ] && exec \"$p\" --from git+https://github.com/BeehiveInnovations/pal-mcp-server.git pal-mcp-server; done; echo 'uvx not found' >&2; exit 1"
+      ],
+      "cwd": "/path/to/pal-mcp-server",
+      "env": {
+        "PATH": "/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin:~/.local/bin",
+        "GEMINI_API_KEY": "your_api_key_here"
+      }
+    }
+  }
+}
+```
+
+Replace the placeholder API key with the providers you use (Gemini, OpenAI, OpenRouter, etc.).
+
+**For OpenCode CLI:**
+Edit `~/.config/opencode/opencode.json`:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "pal": {
+      "type": "local",
+      "command": [
+        "/path/to/pal-mcp-server/.pal_venv/bin/python",
+        "/path/to/pal-mcp-server/server.py"
+      ],
+      "cwd": "/path/to/pal-mcp-server",
+      "enabled": true,
+      "environment": {
+        "GEMINI_API_KEY": "your_api_key_here"
+      }
+    }
+  }
+}
+```
+
+Add any other API keys you rely on (`OPENAI_API_KEY`, `OPENROUTER_API_KEY`, etc.).
+
+#### IDE Clients (Cursor & VS Code)
+
+PAL works in GUI IDEs that speak MCP. The configuration mirrors the CLI examples above—point the client at the `uvx` launcher and set any required environment variables.
+
+**Cursor IDE**
+
+1. Open Cursor → `Settings` (`Cmd+,`/`Ctrl+,`) → **Integrations › Model Context Protocol (MCP)**.
+2. Click **Add MCP Server** and supply the following values:
+   - Command: `sh`
+   - Args: `-c` and `for p in $(which uvx 2>/dev/null) $HOME/.local/bin/uvx /opt/homebrew/bin/uvx /usr/local/bin/uvx uvx; do [ -x "$p" ] && exec "$p" --from git+https://github.com/BeehiveInnovations/pal-mcp-server.git pal-mcp-server; done; echo 'uvx not found' >&2; exit 1`
+   - Environment (example):
+     - `PATH=/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin:~/.local/bin`
+     - `GEMINI_API_KEY=your_api_key_here`
+3. Save the configuration—Cursor will launch the MCP server on demand. See the [Cursor MCP guide](https://cursor.com/docs) for screenshots of the UI.
+
+**Visual Studio Code (Claude Dev extension)**
+
+1. Install the [Claude Dev extension](https://marketplace.visualstudio.com/items?itemName=Anthropic.claude-vscode) v0.6.0 or later.
+2. Open the Command Palette (`Cmd+Shift+P`/`Ctrl+Shift+P`) → **Claude: Configure MCP Servers** → **Add server**.
+3. When prompted, use the same values as above:
+   - Command: `sh`
+   - Args: `-c` and the `uvx` bootstrap loop
+   - Environment: add the API keys you need (e.g. `GEMINI_API_KEY`, `OPENAI_API_KEY`)
+4. Save the JSON snippet the extension generates. VS Code will reload the server automatically the next time you interact with Claude.
+
+👉 Pro tip: If you prefer a one-line command, replace the long loop with `uvx --from git+https://github.com/BeehiveInnovations/pal-mcp-server.git pal-mcp-server`—just make sure `uvx` is on your PATH for every client.
 
 **Benefits of uvx method:**
 - ✅ Zero manual setup required
@@ -161,8 +248,8 @@ GEMINI_API_KEY = "your_api_key_here"
 
 ```bash
 # Clone the repository
-git clone https://github.com/BeehiveInnovations/zen-mcp-server.git
-cd zen-mcp-server
+git clone https://github.com/BeehiveInnovations/pal-mcp-server.git
+cd pal-mcp-server
 
 # One-command setup (handles everything)
 ./run-server.sh
@@ -204,11 +291,11 @@ Add your API keys (at least one required):
 ```env
 # Choose your providers (at least one required)
 GEMINI_API_KEY=your-gemini-api-key-here       # For Gemini models
-OPENAI_API_KEY=your-openai-api-key-here       # For O3, GPT-5
+OPENAI_API_KEY=your-openai-api-key-here       # For GPT-5.1, GPT-5.1-Codex, O3
 DEEPSEEK_API_KEY=your-deepseek-api-key-here   # For DeepSeek models
 # DEEPSEEK_BASE_URL=https://api.deepseek.com  # Optional: custom API endpoint
 XAI_API_KEY=your-xai-api-key-here             # For Grok models
-OPENROUTER_API_KEY=your-openrouter-key       # For multiple models
+OPENROUTER_API_KEY=your-openrouter-key        # For multiple models
 
 # DIAL Platform (optional)
 DIAL_API_KEY=your-dial-api-key-here
@@ -222,6 +309,57 @@ CUSTOM_API_KEY=                              # Empty for Ollama
 CUSTOM_MODEL_NAME=llama3.2                   # Default model name
 ```
 
+## Prevent Client Timeouts
+
+Some MCP clients default to short timeouts and can disconnect from PAL during long tool runs. Configure each client with a generous ceiling (we recommend at least five minutes); the PAL setup script now writes a 20-minute tool timeout for Codex so upstream providers contacted by the server have time to respond.
+
+### Claude Code & Claude Desktop
+
+Claude reads MCP-related environment variables either from your shell or from `~/.claude/settings.json`. Add (or update) the `env` block so both startup and tool execution use a 5-minute limit:
+
+```json
+{
+  "env": {
+    "MCP_TIMEOUT": "300000",
+    "MCP_TOOL_TIMEOUT": "300000"
+  }
+}
+```
+
+You can scope this block at the top level of `settings.json` (applies to every session) or under a specific `mcpServers.<name>.env` entry if you only want it for PAL (the server name may still be `pal` while configurations catch up). The values are in milliseconds. Note: Claude’s SSE transport still enforces an internal ceiling of roughly five minutes; long-running HTTP/SSE servers may need retries until Anthropic ships their fix.
+
+### Codex CLI
+
+Codex exposes per-server timeouts in `~/.codex/config.toml`. Add (or bump) these keys under `[[mcp_servers.<name>]]`:
+
+```toml
+[mcp_servers.pal]
+command = "..."
+args = ["..."]
+startup_timeout_sec = 300    # default is 10 seconds
+tool_timeout_sec = 1200      # default is 60 seconds; setup script pre-populates 20 minutes so upstream providers can respond
+```
+
+`startup_timeout_sec` covers the initial handshake/list tools step, while `tool_timeout_sec` governs each tool call. Raise the latter if the providers your MCP server invokes routinely need more than 20 minutes.
+
+### Gemini CLI
+
+Gemini uses a single `timeout` field per server inside `~/.gemini/settings.json`. Set it to at least five minutes (values are milliseconds):
+
+```json
+{
+  "mcpServers": {
+    "pal": {
+      "command": "uvx",
+      "args": ["pal-mcp-server"],
+      "timeout": 300000
+    }
+  }
+}
+```
+
+Versions 0.2.1 and newer currently ignore values above ~60 seconds for some transports due to a known regression; if you still see premature disconnects we recommend breaking work into smaller calls or watching the Gemini CLI release notes for the fix.
+
 **Important notes:**
 - ⭐ **No restart needed** - Changes take effect immediately 
 - ⭐ If multiple APIs configured, native APIs take priority over OpenRouter
@@ -232,52 +370,62 @@ CUSTOM_MODEL_NAME=llama3.2                   # Default model name
 ### For Claude Desktop:
 1. Restart Claude Desktop
 2. Open a new conversation
-3. Try: `"Use zen to list available models"`
+3. Try: `"Use pal to list available models"`
 
 ### For Claude Code CLI:
 1. Exit any existing Claude session
 2. Run `claude` from your project directory  
-3. Try: `"Use zen to chat about Python best practices"`
+3. Try: `"Use pal to chat about Python best practices"`
 
 ### For Gemini CLI:
-**Note**: While Zen MCP connects to Gemini CLI, tool invocation isn't working correctly yet. See [Gemini CLI Setup](gemini-setup.md) for updates.
+**Note**: While PAL MCP connects to Gemini CLI, tool invocation isn't working correctly yet. See [Gemini CLI Setup](gemini-setup.md) for updates.
+
+### For Qwen Code CLI:
+1. Restart the Qwen Code CLI if it's running (`qwen exit`).
+2. Run `qwen mcp list --scope user` and confirm `pal` shows `CONNECTED`.
+3. Try: `"/mcp"` to inspect available tools or `"Use pal to analyze this repo"`.
+
+### For OpenCode CLI:
+1. Restart OpenCode (or run `OpenCode: Reload Config`).
+2. Open **Settings › Tools › MCP** and confirm `pal` is enabled.
+3. Start a new chat and try: `"Use pal to list available models"`.
 
 ### For Codex CLI:
 1. Restart Codex CLI if running
 2. Open a new conversation
-3. Try: `"Use zen to list available models"`
+3. Try: `"Use pal to list available models"`
 
 ### Test Commands:
 ```
-"Use zen to list available models"
-"Chat with zen about the best approach for API design"
-"Use zen thinkdeep with gemini pro about scaling strategies"  
+"Use pal to list available models"
+"Chat with pal about the best approach for API design"
+"Use pal thinkdeep with gemini pro about scaling strategies"  
 "Debug this error with o3: [paste error]"
 ```
 
 **Note**: Codex CLI provides excellent MCP integration with automatic environment variable configuration when using the setup script.
 
-## Step 5: Start Using Zen
+## Step 5: Start Using PAL
 
 ### Basic Usage Patterns:
 
 **Let Claude pick the model:**
 ```
-"Use zen to analyze this code for security issues"
-"Debug this race condition with zen"
-"Plan the database migration with zen"
+"Use pal to analyze this code for security issues"
+"Debug this race condition with pal"
+"Plan the database migration with pal"
 ```
 
 **Specify the model:**
 ```  
-"Use zen with gemini pro to review this complex algorithm"
-"Debug with o3 using zen for logical analysis"
-"Get flash to quickly format this code via zen"
+"Use pal with gemini pro to review this complex algorithm"
+"Debug with o3 using pal for logical analysis"
+"Get flash to quickly format this code via pal"
 ```
 
 **Multi-model workflows:**
 ```
-"Use zen to get consensus from pro and o3 on this architecture"
+"Use pal to get consensus from pro and o3 on this architecture"
 "Code review with gemini, then precommit validation with o3"  
 "Analyze with flash, then deep dive with pro if issues found"
 ```
@@ -293,7 +441,7 @@ CUSTOM_MODEL_NAME=llama3.2                   # Default model name
 
 ## Common Issues and Solutions
 
-### "zen not found" or "command not found"
+### "pal not found" or "command not found"
 
 **For uvx installations:**
 - Ensure `uv` is installed and in PATH
@@ -302,7 +450,7 @@ CUSTOM_MODEL_NAME=llama3.2                   # Default model name
 
 **For clone installations:**
 - Run `./run-server.sh` again to verify setup
-- Check virtual environment: `which python` should show `.zen_venv/bin/python`
+- Check virtual environment: `which python` should show `.pal_venv/bin/python`
 
 ### API Key Issues
 
@@ -312,7 +460,7 @@ CUSTOM_MODEL_NAME=llama3.2                   # Default model name
 - Check for extra spaces or quotes around keys
 
 **"Model not available":**
-- Run `"Use zen to list available models"` to see what's configured
+- Run `"Use pal to list available models"` to see what's configured
 - Check model restrictions in environment variables
 - Verify API key has access to requested models
 
@@ -358,7 +506,7 @@ OPENAI_API_KEY=your-key
 DEEPSEEK_API_KEY=your-key
 # DEEPSEEK_BASE_URL=https://api.deepseek.com
 GOOGLE_ALLOWED_MODELS=flash,pro
-OPENAI_ALLOWED_MODELS=o4-mini,o3-mini
+OPENAI_ALLOWED_MODELS=gpt-5.1-codex-mini,gpt-5-mini,o4-mini
 ```
 
 ### Cost-Optimized Setup
@@ -376,7 +524,7 @@ OPENAI_API_KEY=your-key
 DEEPSEEK_API_KEY=your-key
 # DEEPSEEK_BASE_URL=https://api.deepseek.com
 GOOGLE_ALLOWED_MODELS=pro
-OPENAI_ALLOWED_MODELS=o3
+OPENAI_ALLOWED_MODELS=gpt-5.1-codex,gpt-5.1
 ```
 
 ### Local-First Setup

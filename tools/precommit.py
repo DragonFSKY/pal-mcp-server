@@ -4,7 +4,7 @@ Precommit Workflow tool - Step-by-step pre-commit validation with expert analysi
 This tool provides a structured workflow for comprehensive pre-commit validation.
 It guides the CLI agent through systematic investigation steps with forced pauses between each step
 to ensure thorough code examination, git change analysis, and issue detection before proceeding.
-The tool supports backtracking, finding updates, and expert analysis integration.
+The tool supports finding updates and expert analysis integration.
 
 Key features:
 - Step-by-step pre-commit investigation workflow with progress tracking
@@ -34,37 +34,30 @@ logger = logging.getLogger(__name__)
 # Tool-specific field descriptions for precommit workflow
 PRECOMMIT_WORKFLOW_FIELD_DESCRIPTIONS = {
     "step": (
-        "Validation plan. Step 1: State strategy. Later: Report findings. "
-        "MUST examine git changes, analyze impacts. Use 'relevant_files' for code. NO large snippets."
+        "Step 1: outline how you'll validate the git changes. Later steps: report findings. Review diffs and impacts, use `relevant_files`, and avoid pasting large snippets."
     ),
-    "step_number": "Current step index in pre-commit sequence (starts at 1). Build upon previous steps.",
+    "step_number": "Current pre-commit step number (starts at 1).",
     "total_steps": (
-        "Estimated steps needed to complete validation. "
-        "IMPORTANT: For external validation, use max 3 steps. For internal validation, use 1 step. "
-        "When continuation_id is provided (continuing a previous conversation), set to 3 max for external, 1 for internal."
+        "Planned number of validation steps. External validation: use at most three (analysis → follow-ups → summary). Internal validation: a single step. Honour these limits when resuming via continuation_id."
     ),
     "next_step_required": (
         "True to continue with another step, False when validation is complete. "
-        "CRITICAL: If total_steps>=3, set to True until the final step. "
+        "CRITICAL: If total_steps>=3 or when `precommit_type = external`, set to True until the final step. "
         "When continuation_id is provided: Follow the same validation rules based on precommit_type."
     ),
-    "findings": (
-        "Discoveries: git diffs, modifications, issues (bugs, missing tests, security). "
-        "Document positive+concerns. Update in later steps."
-    ),
-    "files_checked": "All examined files (absolute paths), including ruled-out ones.",
-    "relevant_files": "Files with changes or relevant to validation (absolute paths). Modified files, config, tests, docs.",
-    "relevant_context": "Methods/functions central to changes: 'Class.method' or 'function'. Focus on modified/added.",
-    "issues_found": "Issues with 'severity' (critical/high/medium/low) and 'description'. Bugs, security, performance.",
-    "precommit_type": "'external' (default, expert review) or 'internal' (local only). Default external unless user specifies.",
-    "backtrack_from_step": "Step number to backtrack from if revision needed.",
-    "images": "Optional screenshots/visuals for validation (absolute paths).",
-    "path": "Starting path for git repos (FULL absolute path). REQUIRED step 1.",
-    "compare_to": "Optional git ref (branch/tag/commit) to compare. Checks remotes if needed. Without: checks staged/unstaged.",
-    "include_staged": "Analyze staged changes. Ignored if 'compare_to' provided.",
-    "include_unstaged": "Analyze unstaged changes. Ignored if 'compare_to' provided.",
-    "focus_on": "Focus aspects: security, performance, test coverage.",
-    "severity_filter": "Minimum severity to report.",
+    "findings": "Record git diff insights, risks, missing tests, security concerns, and positives; update previous notes as you go.",
+    "files_checked": "Absolute paths for every file examined, including ruled-out candidates.",
+    "relevant_files": "Absolute paths of files involved in the change or validation (code, configs, tests, docs). Must be absolute full non-abbreviated paths.",
+    "relevant_context": "Key functions/methods touched by the change (e.g. 'Class.method', 'function_name').",
+    "issues_found": "List issues with severity (critical/high/medium/low) plus descriptions (bugs, security, performance, coverage).",
+    "precommit_type": "'external' (default, triggers expert model) or 'internal' (local-only validation).",
+    "images": "Optional absolute paths to screenshots or diagrams that aid validation.",
+    "path": "Absolute path to the repository root. Required in step 1.",
+    "compare_to": "Optional git ref (branch/tag/commit) to diff against; falls back to staged/unstaged changes.",
+    "include_staged": "Whether to inspect staged changes (ignored when `compare_to` is set).",
+    "include_unstaged": "Whether to inspect unstaged changes (ignored when `compare_to` is set).",
+    "focus_on": "Optional emphasis areas such as security, performance, or test coverage.",
+    "severity_filter": "Lowest severity to include when reporting issues.",
 }
 
 
@@ -95,11 +88,6 @@ class PrecommitRequest(WorkflowRequest):
         "external", description=PRECOMMIT_WORKFLOW_FIELD_DESCRIPTIONS["precommit_type"]
     )
 
-    # Optional backtracking field
-    backtrack_from_step: Optional[int] = Field(
-        None, description=PRECOMMIT_WORKFLOW_FIELD_DESCRIPTIONS["backtrack_from_step"]
-    )
-
     # Optional images for visual validation
     images: Optional[list[str]] = Field(default=None, description=PRECOMMIT_WORKFLOW_FIELD_DESCRIPTIONS["images"])
 
@@ -119,7 +107,6 @@ class PrecommitRequest(WorkflowRequest):
     # Override inherited fields to exclude them from schema (except model which needs to be available)
     temperature: Optional[float] = Field(default=None, exclude=True)
     thinking_mode: Optional[str] = Field(default=None, exclude=True)
-    use_websearch: Optional[bool] = Field(default=None, exclude=True)
 
     @model_validator(mode="after")
     def validate_step_one_requirements(self):
@@ -213,11 +200,6 @@ class PrecommitTool(WorkflowTool):
                 "enum": ["external", "internal"],
                 "default": "external",
                 "description": PRECOMMIT_WORKFLOW_FIELD_DESCRIPTIONS["precommit_type"],
-            },
-            "backtrack_from_step": {
-                "type": "integer",
-                "minimum": 1,
-                "description": PRECOMMIT_WORKFLOW_FIELD_DESCRIPTIONS["backtrack_from_step"],
             },
             "issues_found": {
                 "type": "array",
@@ -570,7 +552,7 @@ class PrecommitTool(WorkflowTool):
             expert_analysis_used: True if expert analysis was successfully executed
         """
         base_message = (
-            "PRE-COMMIT VALIDATION IS COMPLETE. You may delete any `zen_precommit.changeset` created. You MUST now summarize "
+            "PRE-COMMIT VALIDATION IS COMPLETE. You may delete any `pal_precommit.changeset` created. You MUST now summarize "
             "and present ALL validation results, identified issues with their severity levels, and exact commit recommendations. "
             "Clearly state whether the changes are ready for commit or require fixes first. Provide concrete, actionable guidance for "
             "any issues that need resolution—make it easy for a developer to understand exactly what needs to be "
@@ -635,7 +617,7 @@ class PrecommitTool(WorkflowTool):
                     "You are on step 1 of MAXIMUM 2 steps. CRITICAL: Gather and save the complete git changeset NOW. "
                     "MANDATORY ACTIONS:\\n"
                     + "\\n".join(f"{i+1}. {action}" for i, action in enumerate(required_actions))
-                    + "\\n\\nMANDATORY: The changeset may be large. You MUST save the required changeset as a 'zen_precommit.changeset' file "
+                    + "\\n\\nMANDATORY: The changeset may be large. You MUST save the required changeset as a 'pal_precommit.changeset' file "
                     "(replacing any existing one) in your work directory and include the FULL absolute path in relevant_files (exclude any "
                     "binary files). ONLY include the code changes, no extra commentary."
                     "Set next_step_required=True and step_number=2 for the next call."
@@ -677,7 +659,7 @@ class PrecommitTool(WorkflowTool):
                     f"MANDATORY: call {self.get_name()} tool immediately again, and set next_step_required=False to "
                     f"trigger external validation NOW. "
                     f"MANDATORY: Include the entire changeset! The changeset may be large. You MUST save the required "
-                    f"changeset as a 'zen_precommit.changeset' file (replacing any existing one) in your work directory "
+                    f"changeset as a 'pal_precommit.changeset' file (replacing any existing one) in your work directory "
                     f"and include the FULL absolute path in relevant_files so the expert can access the complete changeset. "
                     f"ONLY include the code changes, no extra commentary."
                 )
@@ -696,7 +678,7 @@ class PrecommitTool(WorkflowTool):
                 # About to complete - ensure changeset is saved
                 next_steps = (
                     "Completing validation and proceeding to expert analysis. "
-                    "MANDATORY: Save the complete git changeset as a 'zen_precommit.changeset' file "
+                    "MANDATORY: Save the complete git changeset as a 'pal_precommit.changeset' file "
                     "in your work directory and include the FULL absolute path in relevant_files."
                 )
             else:
@@ -722,7 +704,7 @@ class PrecommitTool(WorkflowTool):
             elif not request.next_step_required and request.precommit_type == "external":
                 next_steps = (
                     "Completing validation. "
-                    "MANDATORY: Save complete git changeset as 'zen_precommit.changeset' file and include path in relevant_files, "
+                    "MANDATORY: Save complete git changeset as 'pal_precommit.changeset' file and include path in relevant_files, "
                     "excluding any binary files."
                 )
             else:
