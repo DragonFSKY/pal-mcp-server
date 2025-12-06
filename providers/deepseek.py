@@ -8,8 +8,8 @@ from .base import (
     ModelCapabilities,
     ModelResponse,
     ProviderType,
-    create_temperature_constraint,
 )
+from .shared.temperature import RangeTemperatureConstraint
 from .openai_compatible import OpenAICompatibleProvider
 
 if TYPE_CHECKING:
@@ -37,7 +37,7 @@ class DeepSeekModelProvider(OpenAICompatibleProvider):
             supports_json_mode=True,
             supports_images=False,
             supports_temperature=True,
-            temperature_constraint=create_temperature_constraint("range"),
+            temperature_constraint=RangeTemperatureConstraint(0.0, 2.0, 0.6),
             description="DeepSeek V3.1 chat model (non-reasoning mode)",
             aliases=["deepseek", "chat"],
         ),
@@ -55,7 +55,7 @@ class DeepSeekModelProvider(OpenAICompatibleProvider):
             supports_json_mode=True,
             supports_images=False,
             supports_temperature=True,
-            temperature_constraint=create_temperature_constraint("range"),
+            temperature_constraint=RangeTemperatureConstraint(0.0, 2.0, 0.6),
             description="DeepSeek V3.1 reasoning model with thinking tokens",
             aliases=["reasoner"],
         ),

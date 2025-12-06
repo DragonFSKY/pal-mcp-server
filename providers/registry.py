@@ -1,6 +1,7 @@
 """Model provider registry for managing available providers."""
 
 import logging
+import os
 from typing import TYPE_CHECKING, Optional
 
 from utils.env import get_env
@@ -343,11 +344,8 @@ class ModelProviderRegistry:
         key_mapping = {
             ProviderType.GOOGLE: "GEMINI_API_KEY",
             ProviderType.OPENAI: "OPENAI_API_KEY",
-<<<<<<< HEAD
             ProviderType.DEEPSEEK: "DEEPSEEK_API_KEY",
-=======
             ProviderType.AZURE: "AZURE_OPENAI_API_KEY",
->>>>>>> upstream/main
             ProviderType.XAI: "XAI_API_KEY",
             ProviderType.OPENROUTER: "OPENROUTER_API_KEY",
             ProviderType.CUSTOM: "CUSTOM_API_KEY",  # Can be empty for providers that don't need auth
