@@ -152,7 +152,7 @@ install_skills_from_dir() {
     local installed=0
     local skill_names=""
 
-    for skill_dir in "$skills_source"/zen-*/; do
+    for skill_dir in "$skills_source"/pal-*/; do
         if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
             local skill_name=$(basename "$skill_dir")
             local target_dir="$skills_target/$skill_name"
@@ -172,8 +172,8 @@ install_skills_from_dir() {
             mkdir -p "$target_dir/scripts"
             cp "$runner_source" "$target_dir/scripts/"
 
-            # Set ZEN_MCP_ROOT in a config file for the skill
-            echo "ZEN_MCP_ROOT=\"$script_dir\"" > "$target_dir/scripts/.zen_config"
+            # Set PAL_MCP_ROOT in a config file for the skill
+            echo "PAL_MCP_ROOT=\"$script_dir\"" > "$target_dir/scripts/.pal_config"
 
             # Make run.sh executable
             if [[ -f "$target_dir/run.sh" ]]; then
@@ -198,7 +198,7 @@ install_skills() {
     local skills_source="$script_dir/skills"
     local skills_optional="$script_dir/skills-optional"
     local skills_target="${CLAUDE_SKILLS_HOME:-$HOME/.claude/skills}"
-    local runner_source="$script_dir/scripts/zen_skill_runner.py"
+    local runner_source="$script_dir/scripts/pal_skill_runner.py"
     local force_overwrite="${FORCE:-0}"
     local install_all="${INSTALL_ALL:-0}"
 
@@ -225,7 +225,7 @@ install_skills() {
 
     # Check if any skills already exist
     local existing_skills=""
-    for skill_dir in "$skills_source"/zen-*/; do
+    for skill_dir in "$skills_source"/pal-*/; do
         if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
             local skill_name=$(basename "$skill_dir")
             local target_dir="$skills_target/$skill_name"
@@ -235,7 +235,7 @@ install_skills() {
         fi
     done
     if [[ "$install_all" == "1" ]] && [[ -d "$skills_optional" ]]; then
-        for skill_dir in "$skills_optional"/zen-*/; do
+        for skill_dir in "$skills_optional"/pal-*/; do
             if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
                 local skill_name=$(basename "$skill_dir")
                 local target_dir="$skills_target/$skill_name"
@@ -264,7 +264,7 @@ install_skills() {
     fi
 
     # Clean up old unified "zen" skill if exists (migration from old structure)
-    if [[ -d "$skills_target/zen" ]] && [[ ! -d "$skills_target/zen-chat" ]]; then
+    if [[ -d "$skills_target/zen" ]] && [[ ! -d "$skills_target/pal-chat" ]]; then
         print_info "Removing old unified skill structure..."
         safe_rm "$skills_target/zen" || {
             print_error "Failed to safely remove old skill structure: $skills_target/zen"
@@ -306,12 +306,12 @@ install_skills() {
         echo ""
         echo "Skills are now available in Claude Code."
         echo "Each skill can be called directly via run.sh:"
-        echo "  ~/.claude/skills/zen-chat/run.sh --input '{\"prompt\": \"...\"}'"
+        echo "  ~/.claude/skills/pal-chat/run.sh --input '{\"prompt\": \"...\"}'"
         echo ""
         echo "Claude will automatically discover and use them based on context."
     else
         print_warning "No skills found to install in $skills_source"
-        echo "Expected structure: skills/zen-*/SKILL.md"
+        echo "Expected structure: skills/pal-*/SKILL.md"
     fi
 
     return 0

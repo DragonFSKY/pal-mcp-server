@@ -5,7 +5,7 @@ This module provides multiple storage backends for conversation contexts:
 - InMemoryStorage: For MCP server mode (single persistent process)
 - SQLiteStorage: For Skills mode (cross-process persistence)
 
-The backend is selected via ZEN_SKILL_STORAGE environment variable:
+The backend is selected via PAL_SKILL_STORAGE environment variable:
 - "memory" (default): Use in-memory storage (MCP mode)
 - "sqlite": Use SQLite for cross-process persistence (Skills mode)
 
@@ -137,7 +137,7 @@ class SQLiteStorage:
     """SQLite-based storage for cross-process persistence.
 
     Suitable for Skills mode where each invocation is a separate process.
-    Data persists in ~/.zen_mcp/sessions.db across process invocations.
+    Data persists in ~/.pal_mcp/sessions.db across process invocations.
 
     Features:
     - WAL mode for better concurrent access
@@ -149,10 +149,10 @@ class SQLiteStorage:
         """Initialize SQLite storage.
 
         Args:
-            db_path: Path to SQLite database. Defaults to ~/.zen_mcp/sessions.db
+            db_path: Path to SQLite database. Defaults to ~/.pal_mcp/sessions.db
         """
         if db_path is None:
-            db_path = os.path.expanduser("~/.zen_mcp/sessions.db")
+            db_path = os.path.expanduser("~/.pal_mcp/sessions.db")
 
         self.db_path = Path(db_path).expanduser().resolve()
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -297,11 +297,11 @@ _storage_lock = threading.Lock()
 def get_storage_backend() -> StorageBackend:
     """Get the global storage instance (singleton pattern).
 
-    The backend is selected via ZEN_SKILL_STORAGE environment variable:
+    The backend is selected via PAL_SKILL_STORAGE environment variable:
     - "memory" (default): InMemoryStorage for MCP mode
     - "sqlite": SQLiteStorage for Skills mode (cross-process persistence)
 
-    For Skills mode, set ZEN_SKILL_STORAGE=sqlite before importing this module.
+    For Skills mode, set PAL_SKILL_STORAGE=sqlite before importing this module.
     """
     global _storage_instance
 
@@ -312,11 +312,11 @@ def get_storage_backend() -> StorageBackend:
         if _storage_instance is not None:
             return _storage_instance
 
-        storage_type = os.environ.get("ZEN_SKILL_STORAGE", "memory").lower()
+        storage_type = os.environ.get("PAL_SKILL_STORAGE", "memory").lower()
 
         if storage_type == "sqlite":
             # SQLite storage for Skills mode
-            db_path = os.environ.get("ZEN_SKILL_STORAGE_PATH")
+            db_path = os.environ.get("PAL_SKILL_STORAGE_PATH")
             try:
                 _storage_instance = SQLiteStorage(db_path)
                 logger.info("Using SQLite storage for cross-process persistence")

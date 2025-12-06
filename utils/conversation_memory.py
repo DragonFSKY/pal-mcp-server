@@ -18,8 +18,8 @@ This conversation memory system supports two storage backends:
    - Uses SQLite database for cross-process persistence
    - Automatically enabled in Skills mode for session persistence
    - Enables multi-process scenarios (e.g., simulator tests, concurrent workers)
-   - Environment variable: ZEN_SKILL_STORAGE=sqlite
-   - Database location: ~/.zen_mcp/sessions.db (or set ZEN_SKILL_STORAGE_PATH to override)
+   - Environment variable: PAL_SKILL_STORAGE=sqlite
+   - Database location: ~/.pal_mcp/sessions.db (or set PAL_SKILL_STORAGE_PATH to override)
 
 Configuration:
 - MCP Server mode: In-memory storage by default (single process)
@@ -1049,7 +1049,7 @@ def _get_tool_formatted_content(turn: ConversationTurn) -> list[str]:
     if turn.tool_name:
         # Skip tool-specific formatting in Skills mode to avoid importing server.py
         # which triggers MCP server initialization
-        if os.environ.get("ZEN_SKILL_STORAGE") != "sqlite":
+        if os.environ.get("PAL_SKILL_STORAGE") != "sqlite":
             try:
                 # Dynamically import to avoid circular dependencies
                 from server import TOOLS
