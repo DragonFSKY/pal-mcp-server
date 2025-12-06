@@ -187,6 +187,13 @@ def clear_model_restriction_env(monkeypatch):
     for var in restriction_vars:
         monkeypatch.delenv(var, raising=False)
 
+    # Reset the restriction service singleton to ensure clean state
+    try:
+        from utils import model_restrictions
+        model_restrictions._restriction_service = None  # type: ignore[attr-defined]
+    except Exception:
+        pass
+
 
 @pytest.fixture(autouse=True)
 def disable_force_env_override(monkeypatch):
