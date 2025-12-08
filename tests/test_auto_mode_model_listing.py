@@ -107,10 +107,11 @@ def test_error_listing_respects_env_restrictions(monkeypatch, reset_registry):
         ("OPENAI_ALLOWED_MODELS", "gpt-5.1"),
         ("OPENROUTER_ALLOWED_MODELS", "gpt5nano"),
         ("XAI_ALLOWED_MODELS", ""),
+        ("DEEPSEEK_ALLOWED_MODELS", ""),  # Exclude DeepSeek models from listing
     ):
         monkeypatch.setenv(key, value)
 
-    for var in ("XAI_API_KEY", "CUSTOM_API_URL", "CUSTOM_API_KEY", "DIAL_API_KEY"):
+    for var in ("XAI_API_KEY", "CUSTOM_API_URL", "CUSTOM_API_KEY", "DIAL_API_KEY", "DEEPSEEK_API_KEY"):
         monkeypatch.delenv(var, raising=False)
     for azure_var in (
         "AZURE_OPENAI_API_KEY",
