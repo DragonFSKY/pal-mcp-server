@@ -193,8 +193,9 @@ class TestOpenAIProvider:
         assert capabilities.supports_streaming is True
         assert capabilities.allow_code_generation is True
 
+    @patch("providers.openai_responses.OpenAI")
     @patch("providers.openai_compatible.OpenAI")
-    def test_generate_content_resolves_alias_before_api_call(self, mock_openai_class):
+    def test_generate_content_resolves_alias_before_api_call(self, mock_openai_compatible, mock_openai_responses):
         """Test that generate_content resolves aliases before making API calls.
 
         This is the CRITICAL test that was missing - verifying that aliases
@@ -204,7 +205,7 @@ class TestOpenAIProvider:
         """
         # Set up mock OpenAI client for Responses API
         mock_client = MagicMock()
-        mock_openai_class.return_value = mock_client
+        mock_openai_responses.return_value = mock_client
 
         # Mock the Responses API response
         mock_response = MagicMock()

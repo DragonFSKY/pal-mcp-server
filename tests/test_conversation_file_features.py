@@ -719,7 +719,7 @@ class TestGeminiTokenEstimationIntegration:
             max_output_tokens=8192,
         )
 
-        def mock_estimate(model_name, files):
+        def mock_estimate(model_name, files, image_detail=None):
             total = 0
             for file_info in files:
                 mime = file_info["mime_type"]

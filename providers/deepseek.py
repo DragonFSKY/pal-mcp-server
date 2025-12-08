@@ -23,7 +23,8 @@ class DeepSeekModelProvider(OpenAICompatibleProvider):
 
     FRIENDLY_NAME = "DeepSeek"
 
-    SUPPORTED_MODELS = {
+    # Use MODEL_CAPABILITIES for base class compatibility (get_all_model_capabilities)
+    MODEL_CAPABILITIES = {
         "deepseek-chat": ModelCapabilities(
             provider=ProviderType.DEEPSEEK,
             model_name="deepseek-chat",
@@ -72,11 +73,11 @@ class DeepSeekModelProvider(OpenAICompatibleProvider):
 
     def get_capabilities(self, model_name: str) -> ModelCapabilities:
         """Get capabilities for a specific DeepSeek model."""
-        if model_name in self.SUPPORTED_MODELS:
-            capabilities = self.SUPPORTED_MODELS[model_name]
+        if model_name in self.MODEL_CAPABILITIES:
+            capabilities = self.MODEL_CAPABILITIES[model_name]
         else:
             resolved_name = self._resolve_model_name(model_name)
-            capabilities = self.SUPPORTED_MODELS.get(resolved_name)
+            capabilities = self.MODEL_CAPABILITIES.get(resolved_name)
             model_name = resolved_name
 
         if not capabilities:
@@ -93,7 +94,7 @@ class DeepSeekModelProvider(OpenAICompatibleProvider):
     def validate_model_name(self, model_name: str) -> bool:
         """Validate if the model name is supported and allowed."""
         resolved_name = self._resolve_model_name(model_name)
-        if resolved_name not in self.SUPPORTED_MODELS:
+        if resolved_name not in self.MODEL_CAPABILITIES:
             return False
         from utils.model_restrictions import get_restriction_service
 
@@ -146,8 +147,12 @@ class DeepSeekModelProvider(OpenAICompatibleProvider):
     ) -> ModelResponse:
         """Generate content with reasoning support for DeepSeek reasoner models."""
 
-        # Get effective temperature for this model
-        effective_temperature = self.get_effective_temperature(model_name, temperature)
+        # Get capabilities and effective temperature for this model
+        capabilities = self.MODEL_CAPABILITIES.get(model_name)
+        if capabilities:
+            effective_temperature = capabilities.get_effective_temperature(temperature)
+        else:
+            effective_temperature = temperature
 
         # Only validate if temperature is not None (meaning the model supports it)
         if effective_temperature is not None:
@@ -250,7 +255,7 @@ class DeepSeekModelProvider(OpenAICompatibleProvider):
     def supports_thinking_mode(self, model_name: str) -> bool:
         """Check if the model supports extended thinking mode."""
         resolved = self._resolve_model_name(model_name)
-        capabilities = self.SUPPORTED_MODELS.get(resolved)
+        capabilities = self.MODEL_CAPABILITIES.get(resolved)
         return bool(capabilities and capabilities.supports_extended_thinking)
 
     def get_preferred_model(self, category: "ToolModelCategory", allowed_models: list[str]) -> Optional[str]:
