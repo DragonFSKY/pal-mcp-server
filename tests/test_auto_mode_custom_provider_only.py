@@ -9,7 +9,6 @@ import pytest
 from providers.registry import ModelProviderRegistry
 from providers.shared import ProviderType
 
-
 # Keys to clear when testing custom provider in isolation
 _OTHER_PROVIDER_KEYS = ["GEMINI_API_KEY", "OPENAI_API_KEY", "XAI_API_KEY", "OPENROUTER_API_KEY", "DIAL_API_KEY"]
 

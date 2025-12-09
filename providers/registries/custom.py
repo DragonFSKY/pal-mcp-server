@@ -9,7 +9,6 @@ from utils.env import get_env
 from ..shared import ModelCapabilities, ProviderType
 from .base import CAPABILITY_FIELD_NAMES, CapabilityModelRegistry
 
-
 # Default capabilities for dynamically injected CUSTOM_MODEL_NAME
 _DEFAULT_CONTEXT_WINDOW = 128_000
 _DEFAULT_MAX_OUTPUT_TOKENS = 16_000
