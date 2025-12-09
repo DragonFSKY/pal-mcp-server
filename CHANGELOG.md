@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.3.1 (2025-12-09)
+
+### Bug Fixes
+
+- Resolve import sorting issues for CI
+  ([`97b6da5`](https://github.com/DragonFSKY/pal-mcp-server/commit/97b6da5ca872f8cda2d3e21f9c64e1fbf623c717))
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`f1f39a8`](https://github.com/DragonFSKY/pal-mcp-server/commit/f1f39a892c6c8e4b1042eab261899f8a6fefd1fc))
+
+
 ## v1.3.0 (2025-12-09)
 
 ### Chores
