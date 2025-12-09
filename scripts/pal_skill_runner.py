@@ -177,10 +177,21 @@ def load_payload(input_arg: str | None) -> dict:
     """
     if input_arg:
         input_arg = input_arg.strip()
-        # Check if it's a file path
-        if Path(input_arg).exists():
-            return json.loads(Path(input_arg).read_text())
-        # Otherwise treat as JSON string
+
+        # First, check if it looks like JSON (starts with { or [)
+        # This avoids OSError "File name too long" when passing long JSON strings
+        if input_arg.startswith("{") or input_arg.startswith("["):
+            return json.loads(input_arg)
+
+        # Check if it's a file path (only for non-JSON-looking strings)
+        try:
+            if Path(input_arg).exists():
+                return json.loads(Path(input_arg).read_text())
+        except OSError:
+            # Path too long or other OS error - not a valid file path
+            pass
+
+        # Try parsing as JSON string anyway (handles edge cases)
         return json.loads(input_arg)
 
     # Try reading from stdin
@@ -446,14 +457,69 @@ def _is_error_response(text: str) -> bool:
 # =============================================================================
 
 
+def parse_dynamic_args(unknown_args: list) -> dict:
+    """
+    Parse unknown arguments into a dictionary.
+
+    Supports formats:
+    - --key value
+    - --key=value
+    - --flag (boolean True)
+
+    Args:
+        unknown_args: List of unparsed arguments
+
+    Returns:
+        Dictionary of parsed key-value pairs
+    """
+    result = {}
+    i = 0
+    while i < len(unknown_args):
+        arg = unknown_args[i]
+        if arg.startswith("--"):
+            key = arg[2:]  # Remove '--' prefix
+
+            # Handle --key=value format
+            if "=" in key:
+                key, value = key.split("=", 1)
+                result[key] = _parse_value(value)
+            # Handle --key value format
+            elif i + 1 < len(unknown_args) and not unknown_args[i + 1].startswith("--"):
+                result[key] = _parse_value(unknown_args[i + 1])
+                i += 1
+            # Handle --flag (boolean)
+            else:
+                result[key] = True
+        i += 1
+    return result
+
+
+def _parse_value(value: str):
+    """
+    Parse a string value into appropriate type.
+
+    Attempts to parse as JSON first (for arrays, objects, numbers, booleans),
+    falls back to string.
+    """
+    # Try parsing as JSON (handles arrays, objects, numbers, booleans)
+    try:
+        return json.loads(value)
+    except json.JSONDecodeError:
+        pass
+
+    # Return as string
+    return value
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="PAL Skill Runner - Execute PAL tools directly",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  %(prog)s --skill pal-chat --input '{"prompt": "Hello", "working_directory_absolute_path": "/tmp"}'
-  echo '{"prompt": "Hello", "working_directory_absolute_path": "/tmp"}' | %(prog)s --skill pal-chat
+  %(prog)s --skill pal-chat --input '{"prompt": "Hello"}'
+  %(prog)s --skill pal-chat --prompt "Hello" --thinking_mode medium
+  echo '{"prompt": "Hello"}' | %(prog)s --skill pal-chat
   %(prog)s --list
         """,
     )
@@ -471,7 +537,8 @@ Examples:
         help="List all available skills",
     )
 
-    args = parser.parse_args()
+    # Use parse_known_args to capture dynamic parameters
+    args, unknown_args = parser.parse_known_args()
 
     # List skills mode
     if args.list:
@@ -495,8 +562,18 @@ Examples:
         # Setup environment (load .env, configure providers)
         setup_environment(root)
 
-        # Load input payload
-        payload = load_payload(args.input)
+        # Load input payload - supports multiple formats:
+        # 1. --input JSON (explicit JSON input)
+        # 2. Dynamic args (--prompt "..." --model "...")
+        # 3. stdin (piped JSON)
+        if args.input:
+            payload = load_payload(args.input)
+        elif unknown_args:
+            # Parse dynamic arguments into payload
+            payload = parse_dynamic_args(unknown_args)
+        else:
+            # Try stdin
+            payload = load_payload(None)
 
         # Auto-fill common fields (e.g., working_directory_absolute_path)
         payload = auto_fill_common_fields(payload, args.skill)
