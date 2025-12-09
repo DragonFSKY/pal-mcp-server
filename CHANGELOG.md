@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.3.0 (2025-12-09)
+
+### Chores
+
+- Sync version to config.py [skip ci]
+  ([`aa94060`](https://github.com/DragonFSKY/pal-mcp-server/commit/aa9406024594e5e7e30c760aeb13e181c71eb11e))
+
+### Features
+
+- Add direct command access via symlinks in ~/.local/bin
+  ([`ff2fb02`](https://github.com/DragonFSKY/pal-mcp-server/commit/ff2fb02a9267e9d327897f3091f356bbce20c845))
+
+
 ## v1.2.0 (2025-12-09)
 
 ### Chores
