@@ -841,7 +841,7 @@ async def handle_call_tool(name: str, arguments: dict[str, Any]) -> list[TextCon
                 content_type="text",
                 metadata={"tool_name": name, "available_models": e.available_models},
             )
-            raise ToolExecutionError(error_output.model_dump_json())
+            raise ToolExecutionError(error_output.model_dump_json()) from e
 
         # Create model context with resolved model and option
         try:
