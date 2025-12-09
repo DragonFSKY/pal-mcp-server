@@ -143,6 +143,44 @@ show_help() {
 # Skills Installation Functions
 # ----------------------------------------------------------------------------
 
+create_skill_symlinks() {
+    local skills_target="$1"
+    local bin_dir="${HOME}/.local/bin"
+
+    # Create bin directory if it doesn't exist
+    mkdir -p "$bin_dir"
+
+    # Create symlinks for each skill
+    local symlinks_created=0
+    for skill_dir in "$skills_target"/pal-*/; do
+        if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/run.sh" ]]; then
+            local skill_name=$(basename "$skill_dir")
+            local symlink_path="$bin_dir/$skill_name"
+
+            # Remove existing symlink if present
+            if [[ -L "$symlink_path" ]]; then
+                rm "$symlink_path"
+            fi
+
+            # Create symlink
+            ln -s "$skill_dir/run.sh" "$symlink_path"
+            symlinks_created=$((symlinks_created + 1))
+        fi
+    done
+
+    if [[ $symlinks_created -gt 0 ]]; then
+        echo ""
+        print_success "Created $symlinks_created command symlinks in $bin_dir"
+
+        # Check if ~/.local/bin is in PATH
+        if [[ ":$PATH:" != *":$bin_dir:"* ]]; then
+            print_warning "$bin_dir is not in your PATH"
+            echo "Add this to your ~/.bashrc or ~/.zshrc:"
+            echo "  export PATH=\"\$HOME/.local/bin:\$PATH\""
+        fi
+    fi
+}
+
 install_skills_from_dir() {
     local skills_source="$1"
     local skills_target="$2"
@@ -303,10 +341,14 @@ install_skills() {
             echo "Optional skills ($optional_installed):"
             echo -e "$optional_names"
         fi
+
+        # Create symlinks in ~/.local/bin for direct command access
+        create_skill_symlinks "$skills_target"
+
         echo ""
         echo "Skills are now available in Claude Code."
-        echo "Each skill can be called directly via run.sh:"
-        echo "  ~/.claude/skills/pal-chat/run.sh --input '{\"prompt\": \"...\"}'"
+        echo "You can call skills directly: pal-chat --prompt \"...\""
+        echo "Or via full path: ~/.claude/skills/pal-chat/run.sh --prompt \"...\""
         echo ""
         echo "Claude will automatically discover and use them based on context."
     else
