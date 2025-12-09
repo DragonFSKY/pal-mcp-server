@@ -410,16 +410,56 @@ class CLinkTool(SimpleTool):
         *,
         reason: str,
     ) -> dict[str, Any]:
-        cleaned = dict(metadata)
-        events = cleaned.pop("events", None)
-        if events is not None:
-            cleaned[f"events_removed_for_{reason}"] = True
-            logger.debug(
-                "Clink dropped %s events metadata for %s response (%s)",
-                client.name,
-                reason,
-                type(events).__name__,
-            )
+        """Prune metadata to reduce token usage while keeping essential info."""
+        # Fields to keep (essential for understanding the response)
+        KEEP_FIELDS = {
+            "tool_name",
+            "cli_name",
+            "conversation_ready",
+            "provider_used",
+            "model_used",
+            # Keep error-related fields
+            "error",
+            "error_type",
+            # Keep output status fields
+            "output_summarized",
+            "output_truncated",
+            "output_original_length",
+            "output_summary_length",
+            "output_limit",
+        }
+
+        # Fields to always remove (verbose, not useful for Claude)
+        REMOVE_FIELDS = {
+            "events",
+            "command",
+            "duration_seconds",
+            "parser",
+            "return_code",
+            "usage",
+            "stderr",
+            "raw_output_file",
+            "role",
+        }
+
+        cleaned = {}
+        for key, value in metadata.items():
+            # Skip fields that should be removed
+            if key in REMOVE_FIELDS:
+                continue
+            # Skip events_removed_for_* flags
+            if key.startswith("events_removed_for_"):
+                continue
+            # Keep essential fields or any field not in remove list
+            if key in KEEP_FIELDS or key not in REMOVE_FIELDS:
+                cleaned[key] = value
+
+        logger.debug(
+            "Clink pruned metadata for %s (%s): removed %d fields",
+            client.name,
+            reason,
+            len(metadata) - len(cleaned),
+        )
         return cleaned
 
     def _build_error_metadata(self, client: ResolvedCLIClient, exc: CLIAgentError) -> dict[str, Any]:
