@@ -2,7 +2,8 @@
   "name": "gemini",
   "command": "gemini",
   "additional_args": [
-    "--yolo"
+    "--yolo",
+    "-m", "gemini-2.5-pro"
   ],
   "env": {},
   "roles": {
