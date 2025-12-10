@@ -52,6 +52,19 @@ Multi-step deep thinking process:
 
 JSON response with deep analysis results, findings, and workflow continuation guidance.
 
+## Invocation
+
+```bash
+# Start deep analysis (step 1)
+pal-thinkdeep --step "Analyze the authentication flow" --step_number 1 --total_steps 4 --next_step_required true --findings ""
+
+# Continue analysis (step 2+)
+pal-thinkdeep --step "Examine token validation" --step_number 2 --total_steps 4 --next_step_required true --findings "Found JWT implementation" --continuation_id "abc-123"
+
+# With file context
+pal-thinkdeep --step "Review architecture" --step_number 1 --total_steps 3 --next_step_required true --findings "" --relevant_files '["./src/auth.py"]'
+```
+
 ## Model Selection
 
 - Models are detected at runtime based on your configuration

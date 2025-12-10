@@ -55,6 +55,19 @@ Multi-step refactoring analysis:
 
 JSON with identified code smells, refactoring suggestions, and priority recommendations.
 
+## Invocation
+
+```bash
+# Start refactoring analysis (step 1)
+pal-refactor --step "Identify code smells" --step_number 1 --total_steps 4 --next_step_required true --findings ""
+
+# Continue analysis (step 2+)
+pal-refactor --step "Analyze impact" --step_number 2 --total_steps 4 --next_step_required true --findings "Found duplicate code" --continuation_id "abc-123"
+
+# With specific refactor type
+pal-refactor --step "Find extraction opportunities" --step_number 1 --total_steps 3 --next_step_required true --findings "" --refactor_type extract --relevant_files '["./src/utils.py"]'
+```
+
 ## Model Selection
 
 - Models are detected at runtime based on your configuration

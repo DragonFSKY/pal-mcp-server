@@ -35,6 +35,19 @@ Collaborative thinking and development discussions with PAL's multi-model AI sup
 
 JSON response with AI analysis and optional `continuation_id` for follow-up conversations.
 
+## Invocation
+
+```bash
+# Basic usage
+pal-chat --prompt "How should I structure this API?"
+
+# With file context
+pal-chat --prompt "Review this code" --absolute_file_paths '["./src/main.py"]'
+
+# Continue conversation
+pal-chat --prompt "Tell me more" --continuation_id "abc-123"
+```
+
 ## Model Selection
 
 - Models are detected at runtime based on your configuration

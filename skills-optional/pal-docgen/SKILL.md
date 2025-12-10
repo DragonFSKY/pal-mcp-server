@@ -51,6 +51,16 @@ Multi-step documentation generation:
 
 JSON with generated documentation content and formatting suggestions.
 
+## Invocation
+
+```bash
+# Start documentation (step 1)
+pal-docgen --step "Analyze code structure" --step_number 1 --total_steps 4 --next_step_required true --findings "" --num_files_documented 0 --total_files_to_document 5 --relevant_files '["./src/main.py"]'
+
+# Continue documentation (step 2+)
+pal-docgen --step "Document functions" --step_number 2 --total_steps 4 --next_step_required true --findings "Found 10 functions" --num_files_documented 1 --total_files_to_document 5 --continuation_id "abc-123"
+```
+
 ## Model Selection
 
 - Models are detected at runtime based on your configuration

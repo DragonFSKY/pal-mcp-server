@@ -57,6 +57,19 @@ Multi-step security audit:
 
 JSON with vulnerabilities found, severity levels, and remediation steps.
 
+## Invocation
+
+```bash
+# Start security audit (step 1)
+pal-secaudit --step "Define audit strategy" --step_number 1 --total_steps 5 --next_step_required true --findings ""
+
+# Continue audit (step 2+)
+pal-secaudit --step "Check authentication" --step_number 2 --total_steps 5 --next_step_required true --findings "JWT implementation found" --continuation_id "abc-123"
+
+# With specific focus
+pal-secaudit --step "OWASP Top 10 review" --step_number 1 --total_steps 4 --next_step_required true --findings "" --audit_focus owasp --relevant_files '["./src/api.py"]'
+```
+
 ## Model Selection
 
 - Models are detected at runtime based on your configuration

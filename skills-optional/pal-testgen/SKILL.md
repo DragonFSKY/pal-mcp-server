@@ -52,6 +52,19 @@ Multi-step test generation:
 
 JSON with generated test code, test scenarios, and coverage recommendations.
 
+## Invocation
+
+```bash
+# Start test generation (step 1)
+pal-testgen --step "Analyze code functionality" --step_number 1 --total_steps 4 --next_step_required true --findings ""
+
+# Continue (step 2+)
+pal-testgen --step "Identify edge cases" --step_number 2 --total_steps 4 --next_step_required true --findings "Found 5 public methods" --continuation_id "abc-123"
+
+# With file context
+pal-testgen --step "Generate unit tests" --step_number 1 --total_steps 3 --next_step_required true --findings "" --relevant_files '["./src/calculator.py"]'
+```
+
 ## Model Selection
 
 - Models are detected at runtime based on your configuration

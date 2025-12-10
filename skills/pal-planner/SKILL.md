@@ -49,6 +49,19 @@ Multi-step planning workflow:
 
 JSON with implementation plan, dependencies, and recommended execution order.
 
+## Invocation
+
+```bash
+# Start planning (step 1)
+pal-planner --step "Analyze requirements for user auth feature" --step_number 1 --total_steps 5 --next_step_required true
+
+# Continue planning (step 2+)
+pal-planner --step "Design database schema" --step_number 2 --total_steps 5 --next_step_required true --continuation_id "abc-123"
+
+# Create alternative branch
+pal-planner --step "Alternative: OAuth approach" --step_number 3 --total_steps 5 --next_step_required true --branch_id "oauth-approach" --is_branch_point true
+```
+
 ## Model Selection
 
 - Models are detected at runtime based on your configuration

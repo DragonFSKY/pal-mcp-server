@@ -58,6 +58,19 @@ Multi-step validation process:
 
 JSON with validation results, issues found, and commit readiness assessment.
 
+## Invocation
+
+```bash
+# Start validation (step 1)
+pal-precommit --step "Review staged changes" --step_number 1 --total_steps 3 --next_step_required true --findings "" --path "/path/to/repo"
+
+# Continue validation (step 2+)
+pal-precommit --step "Check for security issues" --step_number 2 --total_steps 3 --next_step_required true --findings "Found 3 modified files" --continuation_id "abc-123"
+
+# With focus area
+pal-precommit --step "Validate changes" --step_number 1 --total_steps 2 --next_step_required true --findings "" --path "/path/to/repo" --focus_on "security"
+```
+
 ## Model Selection
 
 - Models are detected at runtime based on your configuration

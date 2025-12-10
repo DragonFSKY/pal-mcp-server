@@ -52,6 +52,19 @@ Multi-step debugging process:
 
 JSON with debugging findings, hypotheses, and recommended fixes.
 
+## Invocation
+
+```bash
+# Start debugging (step 1)
+pal-debug --step "Reproduce the null pointer exception" --step_number 1 --total_steps 4 --next_step_required true --findings ""
+
+# Continue investigation (step 2+)
+pal-debug --step "Trace data flow" --step_number 2 --total_steps 4 --next_step_required true --findings "Exception occurs in processOrder()" --hypothesis "Input validation missing" --continuation_id "abc-123"
+
+# With file context
+pal-debug --step "Analyze error logs" --step_number 1 --total_steps 3 --next_step_required true --findings "" --relevant_files '["./src/order.py", "./logs/error.log"]'
+```
+
 ## Model Selection
 
 - Models are detected at runtime based on your configuration

@@ -42,6 +42,13 @@ JSON response with:
 }
 ```
 
+## Invocation
+
+```bash
+# List all available models (no parameters needed)
+pal-listmodels
+```
+
 ## Notes
 
 - Models are detected at runtime based on your `.env` configuration

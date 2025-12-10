@@ -29,6 +29,16 @@ None - this is a simple single-prompt tool.
 
 JSON with challenges, counter-arguments, identified risks, and alternative perspectives.
 
+## Invocation
+
+```bash
+# Challenge a decision
+pal-challenge --prompt "We decided to use microservices. What could go wrong?"
+
+# Stress-test an approach
+pal-challenge --prompt "Is using MongoDB for this use case a good idea?"
+```
+
 ## Model Selection
 
 - Models are detected at runtime based on your configuration
