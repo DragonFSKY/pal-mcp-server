@@ -410,25 +410,13 @@ class CLinkTool(SimpleTool):
         *,
         reason: str,
     ) -> dict[str, Any]:
-        """Prune metadata to reduce token usage while keeping essential info."""
-        # Fields to keep (essential for understanding the response)
-        KEEP_FIELDS = {
-            "tool_name",
-            "cli_name",
-            "conversation_ready",
-            "provider_used",
-            "model_used",
-            # Keep error-related fields
-            "error",
-            "error_type",
-            # Keep output status fields
-            "output_summarized",
-            "output_truncated",
-            "output_original_length",
-            "output_summary_length",
-            "output_limit",
-        }
+        """Prune metadata to reduce token usage while keeping essential info.
 
+        Essential fields that are always kept (not in REMOVE_FIELDS):
+        - tool_name, cli_name, conversation_ready, provider_used, model_used
+        - error, error_type (error-related)
+        - output_summarized, output_truncated, output_original_length, etc. (output status)
+        """
         # Fields to always remove (verbose, not useful for Claude)
         REMOVE_FIELDS = {
             "events",
@@ -436,10 +424,15 @@ class CLinkTool(SimpleTool):
             "duration_seconds",
             "parser",
             "return_code",
-            "usage",
-            "stderr",
             "raw_output_file",
             "role",
+        }
+
+        # Stderr patterns that are ONLY noise when they appear alone (exact match)
+        # Using exact match to avoid filtering real errors like "Error loading config"
+        NOISE_ONLY_STDERR = {
+            "reading prompt from stdin...",
+            "reading prompt from stdin",
         }
 
         cleaned = {}
@@ -450,9 +443,27 @@ class CLinkTool(SimpleTool):
             # Skip events_removed_for_* flags
             if key.startswith("events_removed_for_"):
                 continue
-            # Keep essential fields or any field not in remove list
-            if key in KEEP_FIELDS or key not in REMOVE_FIELDS:
-                cleaned[key] = value
+
+            # Smart filter for stderr - only filter known exact noise patterns
+            if key == "stderr" and isinstance(value, str):
+                stderr_stripped = value.strip()
+                stderr_lower = stderr_stripped.lower()
+                # Only filter if empty or matches EXACT noise pattern
+                if not stderr_lower or stderr_lower in NOISE_ONLY_STDERR:
+                    continue  # Skip noise stderr
+                # Keep all other stderr (may contain warnings/errors)
+                cleaned[key] = stderr_stripped
+                continue
+
+            # Smart filter for usage - summarize instead of full details
+            if key == "usage" and isinstance(value, dict):
+                total_tokens = value.get("input_tokens", 0) + value.get("output_tokens", 0)
+                if total_tokens > 0:
+                    cleaned["total_tokens"] = total_tokens
+                continue
+
+            # Keep all fields that weren't explicitly removed
+            cleaned[key] = value
 
         logger.debug(
             "Clink pruned metadata for %s (%s): removed %d fields",
