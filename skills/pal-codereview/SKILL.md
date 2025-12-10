@@ -55,6 +55,19 @@ Multi-step review process:
 
 JSON with review findings, severity levels, and guidance for next steps.
 
+## Invocation
+
+```bash
+# Start code review (step 1)
+pal-codereview --step "Initial code structure analysis" --step_number 1 --total_steps 5 --next_step_required true --findings "" --relevant_files '["./src/api.py"]'
+
+# Continue review (step 2+)
+pal-codereview --step "Security scan" --step_number 2 --total_steps 5 --next_step_required true --findings "Found input validation" --continuation_id "abc-123"
+
+# With specific focus
+pal-codereview --step "Performance review" --step_number 1 --total_steps 3 --next_step_required true --findings "" --review_type performance --focus_on "database queries"
+```
+
 ## Model Selection
 
 - Models are detected at runtime based on your configuration

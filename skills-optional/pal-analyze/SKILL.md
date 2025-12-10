@@ -54,6 +54,19 @@ Multi-step analysis process:
 
 JSON with analysis findings, architectural insights, and recommendations.
 
+## Invocation
+
+```bash
+# Start analysis (step 1)
+pal-analyze --step "Analyze codebase architecture" --step_number 1 --total_steps 4 --next_step_required true --findings ""
+
+# Continue analysis (step 2+)
+pal-analyze --step "Examine dependencies" --step_number 2 --total_steps 4 --next_step_required true --findings "Found MVC pattern" --continuation_id "abc-123"
+
+# With specific analysis type
+pal-analyze --step "Security analysis" --step_number 1 --total_steps 3 --next_step_required true --findings "" --analysis_type security --relevant_files '["./src/auth.py"]'
+```
+
 ## Model Selection
 
 - Models are detected at runtime based on your configuration

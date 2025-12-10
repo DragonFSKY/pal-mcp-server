@@ -48,6 +48,16 @@ Multi-step consensus process:
 
 JSON with multi-model analysis, areas of agreement, disagreements, and synthesized recommendation.
 
+## Invocation
+
+```bash
+# Start consensus (step 1 - your analysis)
+pal-consensus --step "Evaluate REST vs GraphQL for our API" --step_number 1 --total_steps 4 --next_step_required true --findings "Initial analysis: REST is simpler but GraphQL offers flexibility" --models '["gemini-2.5-pro", "gpt-4o"]'
+
+# Continue (step 2+ - consult models)
+pal-consensus --step "Consulting model 1" --step_number 2 --total_steps 4 --next_step_required true --findings "" --continuation_id "abc-123"
+```
+
 ## Model Selection
 
 - Models are detected at runtime based on your configuration

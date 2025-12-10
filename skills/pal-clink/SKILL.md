@@ -33,6 +33,22 @@ Connect to external AI command-line tools for cross-model collaboration. Enables
 
 JSON with external AI response and integration notes.
 
+## Invocation
+
+```bash
+# Call Gemini CLI
+pal-clink --cli_name gemini --prompt "Analyze this architecture"
+
+# Call Codex CLI
+pal-clink --cli_name codex --prompt "Review this code"
+
+# With file context
+pal-clink --cli_name gemini --prompt "Explain this" --absolute_file_paths '["./src/main.py"]'
+
+# Continue conversation
+pal-clink --cli_name gemini --prompt "More details" --continuation_id "abc-123"
+```
+
 ## Model Selection
 
 CLink uses external CLI tools (Gemini CLI, aider, etc.) rather than internal PAL models.

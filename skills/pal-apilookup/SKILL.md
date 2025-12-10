@@ -29,6 +29,16 @@ None - this is a simple single-prompt tool.
 
 JSON with documentation excerpts, usage examples, and relevant links.
 
+## Invocation
+
+```bash
+# Basic usage
+pal-apilookup --prompt "How to use React useEffect hook?"
+
+# SDK documentation
+pal-apilookup --prompt "Python requests library POST with JSON body"
+```
+
 ## Model Selection
 
 - Models are detected at runtime based on your configuration

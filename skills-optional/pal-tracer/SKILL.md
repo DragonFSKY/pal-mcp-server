@@ -53,6 +53,19 @@ Multi-step tracing process:
 
 JSON with execution trace, call graph, and data flow analysis.
 
+## Invocation
+
+```bash
+# Start tracing (step 1)
+pal-tracer --step "Map call structure" --step_number 1 --total_steps 4 --next_step_required true --findings "" --target_description "Trace user login flow" --trace_mode static
+
+# Continue tracing (step 2+)
+pal-tracer --step "Trace data flow" --step_number 2 --total_steps 4 --next_step_required true --findings "Entry point: login()" --target_description "Trace user login flow" --trace_mode static --continuation_id "abc-123"
+
+# With file context
+pal-tracer --step "Analyze execution path" --step_number 1 --total_steps 3 --next_step_required true --findings "" --target_description "Order processing" --trace_mode data_flow --relevant_files '["./src/order.py"]'
+```
+
 ## Model Selection
 
 - Models are detected at runtime based on your configuration
