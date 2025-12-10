@@ -118,6 +118,60 @@ safe_rm() {
     return 0
 }
 
+# Get available CLI clients from conf/cli_clients/*.json
+get_available_cli_clients() {
+    local script_dir="$1"
+    local cli_dir="$script_dir/conf/cli_clients"
+    local clients=""
+
+    if [[ -d "$cli_dir" ]]; then
+        for json_file in "$cli_dir"/*.json; do
+            if [[ -f "$json_file" ]]; then
+                # Extract name field from JSON (simple grep-based extraction)
+                local name=$(grep -o '"name"[[:space:]]*:[[:space:]]*"[^"]*"' "$json_file" | head -1 | sed 's/.*"\([^"]*\)"$/\1/')
+                if [[ -n "$name" ]]; then
+                    if [[ -n "$clients" ]]; then
+                        clients="$clients, $name"
+                    else
+                        clients="$name"
+                    fi
+                fi
+            fi
+        done
+    fi
+
+    echo "$clients"
+}
+
+# Update pal-clink SKILL.md with dynamic description of available CLI clients
+update_clink_description() {
+    local target_dir="$1"
+    local script_dir="$2"
+    local skill_md="$target_dir/SKILL.md"
+
+    if [[ ! -f "$skill_md" ]]; then
+        return 0
+    fi
+
+    # Get available CLI clients
+    local clients=$(get_available_cli_clients "$script_dir")
+
+    if [[ -z "$clients" ]]; then
+        return 0
+    fi
+
+    # Create new description with available clients
+    local new_desc="description: Bridges to external AI CLIs ($clients) for cross-model collaboration and specialized capabilities."
+
+    # Replace the description line in SKILL.md
+    if [[ "$(uname)" == "Darwin" ]]; then
+        # macOS sed requires different syntax
+        sed -i '' "s/^description:.*/$new_desc/" "$skill_md"
+    else
+        sed -i "s/^description:.*/$new_desc/" "$skill_md"
+    fi
+}
+
 show_help() {
     echo "Zen Skills Installation Script"
     echo ""
@@ -216,6 +270,11 @@ install_skills_from_dir() {
             # Make run.sh executable
             if [[ -f "$target_dir/run.sh" ]]; then
                 chmod +x "$target_dir/run.sh"
+            fi
+
+            # Update pal-clink description with available CLI clients
+            if [[ "$skill_name" == "pal-clink" ]]; then
+                update_clink_description "$target_dir" "$script_dir"
             fi
 
             if [[ "$skill_type" == "optional" ]]; then
