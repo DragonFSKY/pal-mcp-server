@@ -50,6 +50,6 @@ pal-chat --prompt "Tell me more" --continuation_id "abc-123"
 
 ## Model Selection
 
-- Models are detected at runtime based on your configuration
-- Use `pal-listmodels` to see available models before specifying one
-- Default: auto-select best available model for the task
+- Default: auto - System automatically selects the best available model
+- Do NOT specify `--model` unless you have a specific reason - let the system choose
+- If you must specify, use `pal-listmodels` to see available model names first

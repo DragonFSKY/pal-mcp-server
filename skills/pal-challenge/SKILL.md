@@ -41,6 +41,6 @@ pal-challenge --prompt "Is using MongoDB for this use case a good idea?"
 
 ## Model Selection
 
-- Models are detected at runtime based on your configuration
-- Use `pal-listmodels` to see available models before specifying one
-- Default: auto-select best available model for the task
+- Default: auto - System automatically selects the best available model
+- Do NOT specify `--model` unless you have a specific reason - let the system choose
+- If you must specify, use `pal-listmodels` to see available model names first

@@ -60,6 +60,6 @@ pal-consensus --step "Consulting model 1" --step_number 2 --total_steps 4 --next
 
 ## Model Selection
 
-- Models are detected at runtime based on your configuration
-- Use `pal-listmodels` to see available models before specifying one
-- Provide `models` array to specify which models to consult
+- Default: auto - System automatically selects the best available model
+- Provide `models` array to specify which models to consult for consensus
+- Use `pal-listmodels` to see available model names first
